@@ -1,10 +1,13 @@
 <template>
   <div id="app">
     <h2>Annotator</h2>
-    Selection: {{selectionText}}<br>
-    Bounds: {{selectionBounds}}
+    Focus: {{focus}}<br>
+    Quote: {{selectionText}}<br>
+    Range: {{selectionBounds}}
     <hr>
+    <button class="button is-primary" v-if="annotations.length == 0" @click="load()">Load</button>
     <button class="button is-primary" v-if="selection" @click="annotate()">Annotate</button>
+    <button class="button is-primary" v-if="focus!=null" @click="erase(focus)">Remove</button>
     <button class="button is-primary" v-if="annotations.length" @click="draw()">Draw</button>
     <table class="table">
       <tr v-for="(annotation, index) in annotations">
@@ -42,11 +45,15 @@ export default {
 
     return {
       root: null,
+      focus: null,
       selection: null,
       range: null,
       annotations: [],
       highlights: [],
+      sampleData: data,
       canvas: {
+        top: 0,
+        left: 0,
         width: 1400,
         height: 1400
       }
@@ -56,6 +63,9 @@ export default {
   computed: {
     selectionText() {
       var sel = this.selection || '';
+      if (sel == '' && this.focus) {
+        sel = this.annotations[this.focus].quote;
+      }
       return sel.toString();
     },
 
@@ -70,11 +80,17 @@ export default {
   mounted () {
     this.root = document.querySelector('.annotated-content');
     EventSpy.start(this.root,
+      /* selection callback */
       (sel, range) => {
         this.onSelectionChanged(sel, range);
       },
+      /* resize callback */
       () => {
         this.onDocumentResized();
+      },
+      /* mouse callback */
+      (pos) => {
+        this.onMouseUp(pos);
       }
     );
     this.draw();
@@ -88,7 +104,34 @@ export default {
 
     onDocumentResized: _.debounce(function() {
       this.draw();
-    }, 250),
+    }, 150),
+
+    onMouseUp: function(pos) {
+      this.focus = null;
+
+      pos.x -= this.canvas.left;
+      pos.y -= this.canvas.top;
+
+      // find
+      var pad = 2;
+      for(var h of this.highlights) {
+        var left = h.x - pad;
+        var right = h.x + h.width + pad;
+        var top = h.y - pad;
+        var bottom = h.y + h.height + pad;
+        if (left < pos.x && right > pos.x &&
+            top < pos.y && bottom > pos.y) {
+          this.focus = h.idx;
+        }
+      }
+
+    },
+
+    load() {
+      this.annotations = [ ...this.sampleData ];
+      this.draw();
+      this.clearSelection();
+    },
 
     annotate() {
       if (!this.selection)
@@ -104,6 +147,12 @@ export default {
       this.clearSelection();
     },
 
+    erase(idx) {
+      this.annotations.splice(idx,1);
+      this.draw();
+      this.clearSelection();
+    },
+
     draw() {
       this.annotations.forEach(a=> { this.computeRects(a) });
 
@@ -114,15 +163,18 @@ export default {
       this.canvas.height = canvasRect.height;
 
       var rects = [];
+      var idx = 0;
       this.annotations.forEach(a=> {
         a.rects.forEach(r=> {
           rects.push({
             x: r.x - this.canvas.left - 1,
             y: r.y - this.canvas.top - 1,
             width: r.width,
-            height: r.height
+            height: r.height,
+            idx: idx
           });
         });
+        idx++;
       });
 
       this.highlights = rects;
@@ -134,7 +186,8 @@ export default {
       var rects = range.getClientRects();
       annotation.rects = [];
       for(var i=0;i<rects.length;i++) {
-        annotation.rects.push(rects.item(i).toJSON());
+        var rect = rects.item(i).toJSON();
+        annotation.rects.push(rect);
       }
     },
 
@@ -148,6 +201,10 @@ export default {
       } else if (document.selection) {  // IE?
           document.selection.empty();
       }
+
+      this.selection = null;
+      this.range = null;
+      this.focus = null;
     },
   },
 
@@ -158,6 +215,6 @@ export default {
 </script>
 
 <style lang="sass" scoped>
-@import '~bulma/bulma.sass';
+/*@import '~bulma/bulma.sass';*/
 
 </style>

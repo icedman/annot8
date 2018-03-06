@@ -5,6 +5,7 @@ var selection = null;
 var selectedRange = null;
 var selectionChangedCallback = null;
 var documentResizeCallback = null;
+var mouseUpCallback = null;
 var isRunning = false;
 
 function isElementWithin(elm) {
@@ -14,7 +15,6 @@ function isElementWithin(elm) {
     }
     elm = elm.parentElement;
   }
-  console.log(elm);
   return false;
 }
 
@@ -57,25 +57,32 @@ function onDocumentResize() {
 }
 
 function onMouseUp(evt) {
-  if (!isRunning)
+  if (selection) {
     return;
-  onSelectionChange();
+  }
+  // check within
+  if (isElementWithin(evt.srcElement)) {
+    mouseUpCallback({x:evt.clientX, y:evt.clientY, sx:evt.screenX, sy:evt.screenY});
+  }
 }
 
-function start(element, callback1, callback2) {
+function start(element, callback1, callback2, callback3) {
   rootElement = element;
   selectionChangedCallback = callback1;
   documentResizeCallback = callback2;
+  mouseUpCallback = callback3;
 
   isRunning = true;
   document.addEventListener('selectionchange', onSelectionChange);
   window.addEventListener('resize', onDocumentResize)
+  window.addEventListener('mouseup', onMouseUp);
 }
 
 function stop() {
   isRunning = false;
   document.removeEventListener('selectionchange', onSelectionChange);
   window.removeEventListener('resize', onDocumentResize)
+  window.removeEventListener('mouseup', onMouseUp);
 }
 
 export default {

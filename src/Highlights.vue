@@ -11,6 +11,7 @@
         :y="h.y"
         :width="h.width"
         :height="h.height"
+        :key="index"
       style="fill:red;fill-opacity:0.5;stroke:0" />
 </svg>
 </div>
