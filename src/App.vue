@@ -3,7 +3,12 @@
     <h2>Annotator</h2>
     Focus: {{focus}}<br>
     Quote: {{selectionQuote}}<br>
-    Range: {{selectionRange}}
+    Range: {{selectionRange}}<br>
+    Elm: {{root.offsetLeft}}, {{root.offsetTop}}<br>
+    Errors:
+    <ul>
+      <li v-for="(e,index) in errors">{{e}}</li>
+    </ul>
     <hr>
     <button class="button is-primary" v-if="annotations.length == 0" @click="load()">Load</button>
     <button class="button is-primary" v-if="selection" @click="annotate()">Annotate</button>
@@ -15,7 +20,9 @@
         <td>{{ annotation.range }}</td>
       </tr>
     </table>
+
     <highlights-canvas
+      :svg="svg"
       :active="focus"
       :left="canvas.left"
       :top="canvas.top"
@@ -23,14 +30,15 @@
       :height="canvas.height"
       :highlights="highlights">
     </highlights-canvas>
+
   </div>
 </template>
 
 <script>
 import EventSpy from './eventSpy.js';
+import Highlights from './Highlights.vue';
 import _ from 'lodash';
 import { toRange, fromRange } from 'xpath-range';
-import Highlights from './Highlights.vue';
 
 export default {
   name: 'app',
@@ -45,7 +53,9 @@ export default {
       ];
 
     return {
-      root: null,
+      errors: [],
+      svg: false,
+      root: {},
       focus: null,
       selection: null,
       range: null,
@@ -55,8 +65,8 @@ export default {
       canvas: {
         top: 0,
         left: 0,
-        width: 1400,
-        height: 1400
+        width: 400,
+        height: 400
       }
     }
   },
@@ -78,7 +88,7 @@ export default {
         return {};
       }
       return this.range;
-    }
+    },
   },
 
   mounted () {
@@ -97,13 +107,16 @@ export default {
         this.onMouseUp(pos);
       }
     );
-    this.draw();
+    this.load();
+    // this.draw();
   },
 
   methods: {
+
     onSelectionChanged: _.debounce(function(sel, range) {
       this.selection = sel;
       this.range = range ? fromRange(range, this.root) : null;
+      window.r = range;
     }, 250),
 
     onDocumentResized: _.debounce(function() {
@@ -113,8 +126,10 @@ export default {
     onMouseUp: function(pos) {
       this.focus = null;
 
-      pos.x -= this.canvas.left;
-      pos.y -= this.canvas.top;
+      pos.x = pos.x + window.scrollX - this.root.offsetLeft;
+      pos.y = pos.y + window.scrollY - this.root.offsetTop;
+
+      this.errors.push(pos);
 
       // find
       var pad = 2;
@@ -158,39 +173,53 @@ export default {
     },
 
     draw() {
-      this.annotations.forEach(a=> { this.computeRects(a) });
+      try {
+        this.annotations.forEach(a=> { this.computeRects(a) });
 
-      var canvasRect = this.root.getBoundingClientRect();
-      this.canvas.top = canvasRect.top;
-      this.canvas.left = canvasRect.left;
-      this.canvas.width = canvasRect.width;
-      this.canvas.height = canvasRect.height;
+        var canvasRect = this.root.getBoundingClientRect();
+        // var canvasRect = { top:0,left:0,width:0,height:0 }
+        this.canvas.top = this.root.offsetTop;
+        this.canvas.left = this.root.offsetLeft;
+        this.canvas.width = canvasRect.width;
+        this.canvas.height = canvasRect.height;
 
-      var rects = [];
-      var idx = 0;
-      this.annotations.forEach(a=> {
-        a.rects.forEach(r=> {
-          rects.push({
-            x: r.x - this.canvas.left - 1,
-            y: r.y - this.canvas.top - 1,
-            width: r.width,
-            height: r.height,
-            idx: idx
+        var rects = [];
+        var idx = 0;
+        this.annotations.forEach(a=> {
+          a.rects.forEach(r=> {
+            rects.push({
+              x: r.x,// - this.canvas.left - 1,
+              y: r.y,// - this.canvas.top - 1,
+              width: r.width,
+              height: r.height,
+              idx: idx
+            });
           });
+          idx++;
         });
-        idx++;
-      });
 
-      this.highlights = rects;
+        this.highlights = rects;
+      } catch(e) {
+        this.errors.push(e);
+      }
     },
 
     computeRects(annotation) {
       var obj = JSON.parse(annotation.range);
       var range = toRange(obj.start, obj.startOffset, obj.end, obj.endOffset, this.root);
+      var bound = this.root.getBoundingClientRect();
+      bound.x = bound.x || bound.left;
+      bound.y = bound.y || bound.top;
+
       var rects = range.getClientRects();
       annotation.rects = [];
       for(var i=0;i<rects.length;i++) {
-        var rect = rects.item(i).toJSON();
+        // this.errors.push(rects.item(i));
+        var rect = rects.item(i);//.toJSON();
+        rect.x = rect.x || rect.left;
+        rect.y = rect.y || rect.top;
+        rect.y = rect.y - bound.y;
+        rect.x = rect.x - bound.x;
         annotation.rects.push(rect);
       }
     },
@@ -220,5 +249,4 @@ export default {
 
 <style lang="sass" scoped>
 /*@import '~bulma/bulma.sass';*/
-
 </style>

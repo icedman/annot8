@@ -66,6 +66,16 @@ function onMouseUp(evt) {
   }
 }
 
+function onTouchStart(evt) {
+  if (selection) {
+    return;
+  }
+  // check within
+  if (isElementWithin(evt.srcElement)) {
+    mouseUpCallback({x:evt.touches[0].clientX, y:evt.touches[0].clientY, sx:evt.touches[0].screenX, sy:evt.touches[0].screenY});
+  }
+}
+
 function start(element, callback1, callback2, callback3) {
   rootElement = element;
   selectionChangedCallback = callback1;
@@ -76,6 +86,7 @@ function start(element, callback1, callback2, callback3) {
   document.addEventListener('selectionchange', onSelectionChange);
   window.addEventListener('resize', onDocumentResize)
   window.addEventListener('mouseup', onMouseUp);
+  window.addEventListener('touchstart', onTouchStart);
 }
 
 function stop() {
@@ -83,6 +94,7 @@ function stop() {
   document.removeEventListener('selectionchange', onSelectionChange);
   window.removeEventListener('resize', onDocumentResize)
   window.removeEventListener('mouseup', onMouseUp);
+  window.removeEventListener('touchstart', onTouchStart);
 }
 
 export default {
