@@ -6,13 +6,12 @@
   </ul>
 -->
 <svg class="disableSelection" :width="width" :height="height" style="border: 2px solid red; z-index:-1; position: absolute; top:0px; left:0px" :style="getStylePosition">
-  <rect v-for="(h, index) in highlights"
+  <rect class="annot8-hl" :class="[ (h.idx==active ? 'annot8-active' : null) ]" v-for="(h, index) in highlights"
         :x="h.x"
         :y="h.y"
         :width="h.width"
         :height="h.height"
-        :key="index"
-      style="fill:red;fill-opacity:0.5;stroke:0" />
+        :key="index"/>
 </svg>
 </div>
 </template>
@@ -24,13 +23,14 @@ export default {
     left: Number,
     width: Number,
     height: Number,
-    highlights: Array
+    highlights: Array,
+    active: Number
   },
 
   computed: {
     getStylePosition() {
       return [ {'top': this.top + 'px' }, {'left': this.left + 'px' }];
-    }
+    },
   }
 }
 </script>

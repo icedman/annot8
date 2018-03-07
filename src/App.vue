@@ -2,8 +2,8 @@
   <div id="app">
     <h2>Annotator</h2>
     Focus: {{focus}}<br>
-    Quote: {{selectionText}}<br>
-    Range: {{selectionBounds}}
+    Quote: {{selectionQuote}}<br>
+    Range: {{selectionRange}}
     <hr>
     <button class="button is-primary" v-if="annotations.length == 0" @click="load()">Load</button>
     <button class="button is-primary" v-if="selection" @click="annotate()">Annotate</button>
@@ -16,6 +16,7 @@
       </tr>
     </table>
     <highlights-canvas
+      :active="focus"
       :left="canvas.left"
       :top="canvas.top"
       :width="canvas.width"
@@ -61,15 +62,18 @@ export default {
   },
 
   computed: {
-    selectionText() {
+    selectionQuote() {
       var sel = this.selection || '';
-      if (sel == '' && this.focus) {
+      if (sel == '' && this.focus !== null) {
         sel = this.annotations[this.focus].quote;
       }
       return sel.toString();
     },
 
-    selectionBounds() {
+    selectionRange() {
+      if (!this.range && this.focus !== null) {
+        return this.annotations[this.focus].range || {};
+      }
       if (!this.range) {
         return {};
       }
