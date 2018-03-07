@@ -6,22 +6,39 @@
 
   <!-- Latest compiled and minified CSS -->
 <style>
-.annot8-canvas {
+.annot8-canvas-svg {
   border: 2px solid red;
-  opacity: 1.0;
+}
+.annot8-canvas-html {
+  border: 2px solid blue;
 }
 .annot8-hl {
-  fill:red;
+  fill:yellow;
   fill-opacity:0.4;
   stroke:0;
   background-color:yellow;
   opacity: 0.4;
 }
 .annot8-hl.annot8-active {
+  fill:yellow;
+  fill-opacity:0.8;
+  stroke:0;
+  background-color:yellow;
+  opacity: 0.8;
+}
+
+.annot8-hl-green {
+  fill:green;
+  fill-opacity:0.4;
+  stroke:0;
+  background-color:green;
+  opacity: 0.4;
+}
+.annot8-hl-green.annot8-active {
   fill:red;
   fill-opacity:0.8;
   stroke:0;
-  background-color:red;
+  background-color:green;
   opacity: 0.8;
 }
 .button {
@@ -31,13 +48,10 @@
   border: 0px;
   background-color: gainsboro;
 }
-.annotated-content {
-  --display: inline-block;
-}
 </style>
   </head>
   <body>
-    <div class="annotated-content">
+    <article class="entry-content">
 
 <p>Welcome to WordPress. This is your first post. Edit or delete it, then start writing!</p>
 
@@ -53,9 +67,16 @@
   Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 </p>
 
-    </div>
+    </article>
 
-    <div id="app"></div>
+    <div id="annot8-app"></div>
+    <script>
+    var annot8Config = {
+      debug: true,
+      svg: false
+    };
+    </script>
     <script src="/dist/build.js"></script>
+
   </body>
 </html>

@@ -1,25 +1,35 @@
 <template>
   <div id="app">
-    <h2>Annotator</h2>
-    Focus: {{focus}}<br>
-    Quote: {{selectionQuote}}<br>
-    Range: {{selectionRange}}<br>
-    Elm: {{root.offsetLeft}}, {{root.offsetTop}}<br>
-    Errors:
-    <ul>
-      <li v-for="(e,index) in errors">{{e}}</li>
-    </ul>
-    <hr>
-    <button class="button is-primary" v-if="annotations.length == 0" @click="load()">Load</button>
-    <button class="button is-primary" v-if="selection" @click="annotate()">Annotate</button>
-    <button class="button is-primary" v-if="focus!=null" @click="erase(focus)">Remove</button>
-    <button class="button is-primary" v-if="annotations.length" @click="draw()">Draw</button>
-    <table class="table">
-      <tr v-for="(annotation, index) in annotations">
-        <td>{{ annotation.quote }}</td>
-        <td>{{ annotation.range }}</td>
-      </tr>
-    </table>
+
+    <div v-if="debug">
+      <h2>Annotator</h2>
+
+      <button class="button is-primary" v-if="annotations.length == 0" @click="loadSample()">Load Sample</button>
+      <button class="button is-primary" v-if="selection" @click="annotate()">Annotate</button>
+      <button class="button is-primary" v-if="selection" @click="annotate('green')">Green Tag</button>
+      <button class="button is-primary" v-if="focus!=null" @click="erase(focus)">Remove</button>
+      <button class="button is-primary" v-if="annotations.length" @click="draw()">Redraw</button>
+      <button class="button is-primary" @click="toggleRenderer()">Toggle Renderer</button>
+
+      <hr>
+
+      Focus: {{focus}}<br>
+      Quote: {{selectionQuote}}<br>
+      Range: {{selectionRange}}<br>
+      Tag:   {{tag}}<br>
+      Elm: {{root.offsetLeft}}, {{root.offsetTop}}<br>
+      Errors:
+      <ul>
+        <li v-for="(e,index) in errors">{{e}}</li>
+      </ul>
+      <hr>
+      <table class="table">
+        <tr v-for="(annotation, index) in annotations">
+          <td>{{ annotation.quote }}</td>
+          <td>{{ annotation.range }}</td>
+        </tr>
+      </table>
+    </div>
 
     <highlights-canvas
       :svg="svg"
@@ -41,27 +51,25 @@ import _ from 'lodash';
 import { toRange, fromRange } from 'xpath-range';
 
 export default {
-  name: 'app',
+  name: 'annot8-app',
 
   data () {
 
-    const data = [
-        {
-          quote: 'Ipsum has been the industry’s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but a',
-          range: '{ "start": "/p[2]/text()[2]", "end": "/p[2]/text()[2]", "startOffset": 70, "endOffset": 281 }',
-        }
-      ];
-
     return {
-      errors: [],
+      selector: 'article',
       svg: false,
+      debug: false,
+
+      errors: [],
+
+      tag: null,
       root: {},
       focus: null,
       selection: null,
       range: null,
       annotations: [],
       highlights: [],
-      sampleData: data,
+
       canvas: {
         top: 0,
         left: 0,
@@ -92,7 +100,22 @@ export default {
   },
 
   mounted () {
-    this.root = document.querySelector('.annotated-content');
+    // load config
+    this.selector = this.$config.selector;
+    this.svg = this.$config.svg;
+    this.debug = this.$config.debug;
+
+    this.root = document.querySelector(this.selector);
+    if (!this.root) {
+      this.root = document.querySelector('.' + this.selector);
+    }
+    if (!this.root) {
+      this.root = document.querySelector('#' + this.selector);
+    }
+    if (!this.root) {
+      return;
+    }
+
     EventSpy.start(this.root,
       /* selection callback */
       (sel, range) => {
@@ -107,8 +130,11 @@ export default {
         this.onMouseUp(pos);
       }
     );
-    this.load();
-    // this.draw();
+    this.draw();
+  },
+
+  destroyed () {
+    EventSpy.stop();
   },
 
   methods: {
@@ -116,7 +142,6 @@ export default {
     onSelectionChanged: _.debounce(function(sel, range) {
       this.selection = sel;
       this.range = range ? fromRange(range, this.root) : null;
-      window.r = range;
     }, 250),
 
     onDocumentResized: _.debounce(function() {
@@ -126,10 +151,9 @@ export default {
     onMouseUp: function(pos) {
       this.focus = null;
 
+      // make relative
       pos.x = pos.x + window.scrollX - this.root.offsetLeft;
       pos.y = pos.y + window.scrollY - this.root.offsetTop;
-
-      this.errors.push(pos);
 
       // find
       var pad = 2;
@@ -144,22 +168,49 @@ export default {
         }
       }
 
+      /*
+      if (this.focus != null) {
+        // re-select!
+        try {
+          var annotation = this.annotations[this.focus];
+          var range = fromRange(JSON.parse(annotation.range), this.root);
+          var selection = window.getSelection();
+          selection.removeAllRanges();
+          // window.ss = selection;
+          // window.rr = range;
+          selection.addRange(range);
+        } catch(e) {
+          this.errors.push(e);
+        }
+      }
+      */
+
     },
 
-    load() {
-      this.annotations = [ ...this.sampleData ];
+    loadSample() {
+      const data = [
+        {
+          quote: 'Ipsum has been the industry’s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but a',
+          range: '{ "start": "/p[2]/text()[2]", "end": "/p[2]/text()[2]", "startOffset": 70, "endOffset": 281 }',
+        }
+      ];
+
+      this.annotations = [ ...data ];
       this.draw();
       this.clearSelection();
     },
 
-    annotate() {
+    annotate(tag) {
       if (!this.selection)
         return;
+
+      this.tag = tag || '';
 
       this.annotations.push({
         quote: this.selection.toString(),
         range: JSON.stringify(this.range),
-        rects: []
+        rects: [],
+        tag: this.tag
       });
 
       this.draw();
@@ -172,12 +223,12 @@ export default {
       this.clearSelection();
     },
 
+    // draw is actually computing the drawRect
     draw() {
       try {
-        this.annotations.forEach(a=> { this.computeRects(a) });
+        this.annotations.forEach(a=> { this.drawAnnotation(a) });
 
         var canvasRect = this.root.getBoundingClientRect();
-        // var canvasRect = { top:0,left:0,width:0,height:0 }
         this.canvas.top = this.root.offsetTop;
         this.canvas.left = this.root.offsetLeft;
         this.canvas.width = canvasRect.width;
@@ -188,11 +239,12 @@ export default {
         this.annotations.forEach(a=> {
           a.rects.forEach(r=> {
             rects.push({
-              x: r.x,// - this.canvas.left - 1,
-              y: r.y,// - this.canvas.top - 1,
+              x: r.x - 2,
+              y: r.y - 2,
               width: r.width,
               height: r.height,
-              idx: idx
+              idx: idx,
+              tag: a.tag,
             });
           });
           idx++;
@@ -204,20 +256,25 @@ export default {
       }
     },
 
-    computeRects(annotation) {
+    drawAnnotation(annotation) {
       var obj = JSON.parse(annotation.range);
       var range = toRange(obj.start, obj.startOffset, obj.end, obj.endOffset, this.root);
       var bound = this.root.getBoundingClientRect();
+
+      // use X,Y
       bound.x = bound.x || bound.left;
       bound.y = bound.y || bound.top;
 
       var rects = range.getClientRects();
       annotation.rects = [];
       for(var i=0;i<rects.length;i++) {
-        // this.errors.push(rects.item(i));
-        var rect = rects.item(i);//.toJSON();
+        var rect = rects.item(i);
+
+        // use X,Y
         rect.x = rect.x || rect.left;
         rect.y = rect.y || rect.top;
+
+        // make relative
         rect.y = rect.y - bound.y;
         rect.x = rect.x - bound.x;
         annotation.rects.push(rect);
@@ -239,6 +296,10 @@ export default {
       this.range = null;
       this.focus = null;
     },
+
+    toggleRenderer() {
+      this.svg = !this.svg;
+    }
   },
 
   components: {

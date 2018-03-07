@@ -1,28 +1,38 @@
 <template>
 <div>
 
-<!--
-  <ul>
-  <li v-for="(highlight, index) in highlights">{{highlight}}</li>
-  </ul>
--->
-
-<svg v-if="svg" class="annot8-canvas disableSelection" :width="width" :height="height" style="z-index:-1; position: absolute; top:0px; left:0px" :style="getStylePosition">
-  <rect class="annot8-hl" :class="[ (h.idx==active ? 'annot8-active' : null) ]" v-for="(h, index) in highlights"
-        :x="h.x"
-        :y="h.y"
-        :width="h.width"
-        :height="h.height"
-        :key="index"/>
+<!-- SVG based renderer -->
+<svg v-if="svg"
+    class="annot8-canvas annot8-canvas-svg disableSelection"
+    :width="width" :height="height"
+    style="z-index:-1; position: absolute; top:0px; left:0px"
+    :style="getStylePosition">
+  <rect class="annot8-hl"
+    :class="[
+      (h.idx==active ? 'annot8-active' : null),
+      (h.tag!='' ? 'annot8-hl-' + h.tag : null),
+    ]"
+    v-for="(h, index) in highlights"
+    :x="h.x"
+    :y="h.y"
+    :width="h.width"
+    :height="h.height"
+    :key="index"/>
 </svg>
 
-<div v-if="!svg" class="annot8-canvas disableSelection"
+<!-- HTML5 based renderer -->
+<div v-if="!svg" class="annot8-canvas annot8-canvas-html disableSelection"
     style="display:block;z-index:-1; position: absolute; top:0px; left:0px"
     :style="getStyleRect">
-  <div class="annot8-hl" :class="[ (h.idx==active ? 'annot8-active' : null) ]" v-for="(h, index) in highlights"
+  <div class="annot8-hl"
+    :class="[
+      (h.idx==active ? 'annot8-active' : null),
+      (h.tag!='' ? 'annot8-hl-' + h.tag : null),
+    ]"
+    v-for="(h, index) in highlights"
     style='position:absolute;display:block'
     :style="[ {'top': h.y + 'px' }, {'left': h.x + 'px' }, {'width': h.width + 'px' } , {'height': h.height + 'px' }]">
-    </div>
+  </div>
 </div>
 
 </div>
@@ -42,7 +52,7 @@ export default {
 
   computed: {
     getStylePosition() {
-      return [ {'top': this.top + 'px' }, {'left': this.left + 'px' } ];
+      return [ {'top': (this.top + 1) + 'px' }, {'left': (this.left + 1) + 'px' } ];
     },
     getStyleRect() {
       return [ {'top': (this.top + 1) + 'px' }, {'left': (this.left + 1) + 'px' },

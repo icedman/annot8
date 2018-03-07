@@ -77,6 +77,10 @@ function onTouchStart(evt) {
 }
 
 function start(element, callback1, callback2, callback3) {
+  if (isRunning) {
+    return;
+  }
+
   rootElement = element;
   selectionChangedCallback = callback1;
   documentResizeCallback = callback2;
@@ -90,6 +94,10 @@ function start(element, callback1, callback2, callback3) {
 }
 
 function stop() {
+  if (!isRunning) {
+    return;
+  }
+
   isRunning = false;
   document.removeEventListener('selectionchange', onSelectionChange);
   window.removeEventListener('resize', onDocumentResize)
