@@ -3,35 +3,37 @@
 
 <!-- SVG based renderer -->
 <svg v-if="svg"
-    class="annot8-canvas annot8-canvas-svg disableSelection"
+    class="annot8-canvas disableSelection annot8-canvas-svg"
     :width="width" :height="height"
     style="z-index:-1; position: absolute; top:0px; left:0px"
     :style="getStylePosition">
   <rect class="annot8-hl"
     :class="[
       (h.idx==active ? 'annot8-active' : null),
-      (h.tag!='' ? 'annot8-hl-' + h.tag : null),
+      (h.tag && h.tag!='' ? 'annot8-hl-' + h.tag : null),
     ]"
     v-for="(h, index) in highlights"
     :x="h.x"
     :y="h.y"
     :width="h.width"
     :height="h.height"
-    :key="index"/>
+    :key="index"
+    :data-idx="h.idx"/>
 </svg>
 
 <!-- HTML5 based renderer -->
-<div v-if="!svg" class="annot8-canvas annot8-canvas-html disableSelection"
+<div v-if="!svg" class="annot8-canvas disableSelection annot8-canvas-html"
     style="display:block;z-index:-1; position: absolute; top:0px; left:0px"
     :style="getStyleRect">
   <div class="annot8-hl"
     :class="[
       (h.idx==active ? 'annot8-active' : null),
-      (h.tag!='' ? 'annot8-hl-' + h.tag : null),
+      (h.tag && h.tag!='' ? 'annot8-hl-' + h.tag : null),
     ]"
     v-for="(h, index) in highlights"
     style='position:absolute;display:block'
-    :style="[ {'top': h.y + 'px' }, {'left': h.x + 'px' }, {'width': h.width + 'px' } , {'height': h.height + 'px' }]">
+    :style="[ {'top': h.y + 'px' }, {'left': h.x + 'px' }, {'width': h.width + 'px' } , {'height': h.height + 'px' }]"
+    :data-idx="h.idx">
   </div>
 </div>
 
@@ -62,8 +64,8 @@ export default {
 }
 </script>
 
-<style scoped>
-.disableSelection {
+<style>
+.annot8-canvas.disableSelection {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;

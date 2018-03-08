@@ -62,7 +62,7 @@ function onMouseUp(evt) {
   }
   // check within
   if (isElementWithin(evt.srcElement)) {
-    mouseUpCallback({x:evt.clientX, y:evt.clientY, sx:evt.screenX, sy:evt.screenY});
+    mouseUpCallback({x:evt.pageX, y:evt.pageY, sx:evt.screenX, sy:evt.screenY});
   }
 }
 
@@ -72,7 +72,7 @@ function onTouchStart(evt) {
   }
   // check within
   if (isElementWithin(evt.srcElement)) {
-    mouseUpCallback({x:evt.touches[0].clientX, y:evt.touches[0].clientY, sx:evt.touches[0].screenX, sy:evt.touches[0].screenY});
+    mouseUpCallback({x:evt.touches[0].pageX, y:evt.touches[0].pageY, sx:evt.touches[0].screenX, sy:evt.touches[0].screenY});
   }
 }
 

@@ -100,6 +100,7 @@ export default {
   },
 
   mounted () {
+
     // load config
     this.selector = this.$config.selector;
     this.svg = this.$config.svg;
@@ -116,6 +117,12 @@ export default {
       return;
     }
 
+    try {
+      this.root.appendChild(this.$el, this.root.firstElementChild);
+    } catch(e) {
+      //
+    }
+
     EventSpy.start(this.root,
       /* selection callback */
       (sel, range) => {
@@ -130,7 +137,9 @@ export default {
         this.onMouseUp(pos);
       }
     );
-    this.draw();
+
+    window.Annot8 = this;
+    setTimeout(() => { this.draw() }, 500);
   },
 
   destroyed () {
@@ -150,41 +159,23 @@ export default {
 
     onMouseUp: function(pos) {
       this.focus = null;
+      var pad = 2;
 
       // make relative
-      pos.x = pos.x + window.scrollX - this.root.offsetLeft;
-      pos.y = pos.y + window.scrollY - this.root.offsetTop;
+      pos.x = pos.x - window.scrollX;
+      pos.y = pos.y - window.scrollY;
 
-      // find
-      var pad = 2;
-      for(var h of this.highlights) {
+      document.querySelectorAll('.annot8-hl').forEach( n=> {
+        var h = n.getClientRects()[0];
         var left = h.x - pad;
         var right = h.x + h.width + pad;
         var top = h.y - pad;
         var bottom = h.y + h.height + pad;
         if (left < pos.x && right > pos.x &&
             top < pos.y && bottom > pos.y) {
-          this.focus = h.idx;
+          this.focus = n.dataset.idx;
         }
-      }
-
-      /*
-      if (this.focus != null) {
-        // re-select!
-        try {
-          var annotation = this.annotations[this.focus];
-          var range = fromRange(JSON.parse(annotation.range), this.root);
-          var selection = window.getSelection();
-          selection.removeAllRanges();
-          // window.ss = selection;
-          // window.rr = range;
-          selection.addRange(range);
-        } catch(e) {
-          this.errors.push(e);
-        }
-      }
-      */
-
+      });
     },
 
     loadSample() {
