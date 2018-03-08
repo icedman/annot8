@@ -1,35 +1,11 @@
 <template>
   <div id="app">
 
-    <div v-if="debug">
-      <h2>Annotator</h2>
+    <debugger v-if="debug" :a8="Me">
+    </debugger>
 
-      <button class="button is-primary" v-if="annotations.length == 0" @click="loadSample()">Load Sample</button>
-      <button class="button is-primary" v-if="selection" @click="annotate()">Annotate</button>
-      <button class="button is-primary" v-if="selection" @click="annotate('green')">Green Tag</button>
-      <button class="button is-primary" v-if="focus!=null" @click="erase(focus)">Remove</button>
-      <button class="button is-primary" v-if="annotations.length" @click="draw()">Redraw</button>
-      <button class="button is-primary" @click="toggleRenderer()">Toggle Renderer</button>
-
-      <hr>
-
-      Focus: {{focus}}<br>
-      Quote: {{selectionQuote}}<br>
-      Range: {{selectionRange}}<br>
-      Tag:   {{tag}}<br>
-      Elm: {{root.offsetLeft}}, {{root.offsetTop}}<br>
-      Errors:
-      <ul>
-        <li v-for="(e,index) in errors">{{e}}</li>
-      </ul>
-      <hr>
-      <table class="table">
-        <tr v-for="(annotation, index) in annotations">
-          <td>{{ annotation.quote }}</td>
-          <td>{{ annotation.range }}</td>
-        </tr>
-      </table>
-    </div>
+    <toolbar :a8="Me">
+    </toolbar>
 
     <highlights-canvas
       :svg="svg"
@@ -46,9 +22,12 @@
 
 <script>
 import EventSpy from './eventSpy.js';
-import Highlights from './Highlights.vue';
 import _ from 'lodash';
 import { toRange, fromRange } from 'xpath-range';
+
+import Toolbar from './Toolbar.vue';
+import Highlights from './Highlights.vue';
+import Debug from './Debug.vue';
 
 export default {
   name: 'annot8-app',
@@ -80,6 +59,11 @@ export default {
   },
 
   computed: {
+
+    Me() {
+      return this;
+    },
+
     selectionQuote() {
       var sel = this.selection || '';
       if (sel == '' && this.focus !== null) {
@@ -294,7 +278,9 @@ export default {
   },
 
   components: {
-    'highlights-canvas': Highlights
+    'toolbar': Toolbar,
+    'highlights-canvas': Highlights,
+    'debugger': Debug
   }
 }
 </script>
