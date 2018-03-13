@@ -232,8 +232,7 @@ export default {
 
         // account for margins
         try {
-          var marginTop = window.getComputedStyle(document.querySelector('html'))['margin-top'] ||
-            window.getComputedStyle(document.querySelector('body'))['margin-top'];
+          var marginTop = window.getComputedStyle(document.querySelector('html'))['margin-top'];
           if (marginTop) {
             marginTop = parseInt(marginTop)
             this.canvas.top += marginTop;
