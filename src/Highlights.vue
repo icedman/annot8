@@ -1,17 +1,13 @@
 <template>
-<div>
-
+<div class="annot8-canvas-container">
 <!-- SVG based renderer -->
 <svg v-if="svg"
     class="annot8-canvas disableSelection annot8-canvas-svg"
     :width="width" :height="height"
-    style="z-index:-1; position: absolute; top:0px; left:0px"
+    style="position: absolute; top:0px; left:0px"
     :style="getStylePosition">
   <rect class="annot8-hl"
-    :class="[
-      (h.idx==active ? 'annot8-active' : null),
-      (h.tag && h.tag!='' ? 'annot8-hl-' + h.tag : null),
-    ]"
+    :class="[ getHighlightClass(h) ]"
     v-for="(h, index) in highlights"
     :x="h.x"
     :y="h.y"
@@ -20,16 +16,12 @@
     :key="index"
     :data-idx="h.idx"/>
 </svg>
-
 <!-- HTML5 based renderer -->
 <div v-if="!svg" class="annot8-canvas disableSelection annot8-canvas-html"
-    style="display:block;z-index:-1; position: absolute; top:0px; left:0px"
+    style="display:block;position: absolute; top:0px; left:0px"
     :style="getStyleRect">
   <div class="annot8-hl"
-    :class="[
-      (h.idx==active ? 'annot8-active' : null),
-      (h.tag && h.tag!='' ? 'annot8-hl-' + h.tag : null),
-    ]"
+    :class="[ getHighlightClass(h) ]"
     v-for="(h, index) in highlights"
     style='position:absolute;display:block'
     :style="[ {'top': h.y + 'px' }, {'left': h.x + 'px' }, {'width': h.width + 'px' } , {'height': h.height + 'px' }]"
@@ -43,6 +35,7 @@
 <script>
 export default {
   props: {
+    zIndex: Number,
     svg: Boolean,
     top: Number,
     left: Number,
@@ -54,11 +47,22 @@ export default {
 
   computed: {
     getStylePosition() {
-      return [ {'top': (this.top + 1) + 'px' }, {'left': (this.left + 1) + 'px' } ];
+      var container = document.querySelector('.annot8-canvas-container');
+      var offset = container.style.paddingTop;
+      console.log(offset);
+      return [ { 'z-index': (this.zIndex || -1) }, { 'top': (this.top + 1) + 'px' }, {'left': (this.left + 1) + 'px' } ];
     },
     getStyleRect() {
-      return [ {'top': (this.top + 1) + 'px' }, {'left': (this.left + 1) + 'px' },
+      return [ { 'z-index': (this.zIndex || -1) },
+               {'top': (this.top + 1) + 'px' }, {'left': (this.left + 1) + 'px' },
                {'width': (this.width - 2) + 'px' }, {'height': (this.height - 2) + 'px' } ];
+    },
+  },
+
+  methods: {
+    getHighlightClass(h) {
+      return [ (h.idx==this.active ? 'annot8-active' : null),
+               (h.tag && h.tag!='' ? 'annot8-hl-' + h.tag : null) ];
     },
   }
 }
@@ -73,5 +77,8 @@ export default {
     -ms-user-select: none;
     user-select: none;
     outline: 0;
+    pointer-events:none;
+}
+.annot8-canvas-container {
 }
 </style>

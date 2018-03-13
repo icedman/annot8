@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div class="annot8-app">
 
     <debugger v-if="debug" :a8="Me">
     </debugger>
@@ -8,6 +8,7 @@
     </toolbar>
 
     <highlights-canvas
+      :zIndex="zIndex"
       :svg="svg"
       :active="focus"
       :left="canvas.left"
@@ -38,12 +39,14 @@ export default {
       selector: 'article',
       svg: false,
       debug: false,
+      zIndex: -1,
 
       errors: [],
 
       tag: null,
       root: {},
       focus: null,
+      lastFocus: null,
       selection: null,
       range: null,
       annotations: [],
@@ -101,8 +104,10 @@ export default {
       return;
     }
 
+    // re-parent the canvas
     try {
-      this.root.appendChild(this.$el, this.root.firstElementChild);
+      this.root.appendChild(this.$el);
+      // this.root.insertBefore(this.$el, this.root.firstElementChild);
     } catch(e) {
       //
     }
@@ -123,7 +128,9 @@ export default {
     );
 
     window.Annot8 = this;
-    setTimeout(() => { this.draw() }, 500);
+    setTimeout(() => {
+      this.draw();
+    }, 500);
   },
 
   destroyed () {
@@ -157,7 +164,8 @@ export default {
         var bottom = h.y + h.height + pad;
         if (left < pos.x && right > pos.x &&
             top < pos.y && bottom > pos.y) {
-          this.focus = n.dataset.idx;
+          this.focus = parseInt(n.dataset.idx);
+          this.lastFocus = this.focus;
         }
       });
     },
@@ -193,9 +201,21 @@ export default {
     },
 
     erase(idx) {
+      console.log(idx);
       this.annotations.splice(idx,1);
       this.draw();
       this.clearSelection();
+    },
+
+    setZIndices() {
+      let elm = this.root;
+      let z = 1;
+      while(elm && elm !== document.body) {
+        if (!elm.style.zIndex) {
+          elm.style.zIndex = z++;
+        }
+        elm = elm.parentElement;
+      }
     },
 
     // draw is actually computing the drawRect
@@ -203,16 +223,41 @@ export default {
       try {
         this.annotations.forEach(a=> { this.drawAnnotation(a) });
 
+        // first, position the canvas
         var canvasRect = this.root.getBoundingClientRect();
         this.canvas.top = this.root.offsetTop;
         this.canvas.left = this.root.offsetLeft;
         this.canvas.width = canvasRect.width;
         this.canvas.height = canvasRect.height;
 
+        // account for margins
+        try {
+          var marginTop = window.getComputedStyle(document.querySelector('html'))['margin-top'] ||
+            window.getComputedStyle(document.querySelector('body'))['margin-top'];
+          if (marginTop) {
+            marginTop = parseInt(marginTop)
+            this.canvas.top += marginTop;
+          }
+        } catch(e) {
+          //
+        }
+
+        // check first element
+        try {
+          var firstElementRect = this.root.firstElement.getBoundingClientRect();
+          console.log(firstElementRect);
+        } catch(e) {
+          //
+        }
+
         var rects = [];
         var idx = 0;
         this.annotations.forEach(a=> {
           a.rects.forEach(r=> {
+            // some error checking
+            if (!r) {
+              return;
+            }
             rects.push({
               x: r.x - 2,
               y: r.y - 2,
@@ -229,10 +274,13 @@ export default {
       } catch(e) {
         this.errors.push(e);
       }
+
+      // necessary fixes
+      this.setZIndices();
     },
 
     drawAnnotation(annotation) {
-      var obj = JSON.parse(annotation.range);
+      var obj = JSON.parse(annotation.range)
       var range = toRange(obj.start, obj.startOffset, obj.end, obj.endOffset, this.root);
       var bound = this.root.getBoundingClientRect();
 
@@ -270,6 +318,7 @@ export default {
       this.selection = null;
       this.range = null;
       this.focus = null;
+      this.lastFocus = null;
     },
 
     toggleRenderer() {
@@ -285,6 +334,13 @@ export default {
 }
 </script>
 
-<style lang="sass" scoped>
-/*@import '~bulma/bulma.sass';*/
+<style scoped>
+.annot8-app {
+  margin:0px;
+  margin-top:0px;
+  margin-left:0px;
+  padding:0px;
+  padding-top:0px;
+  padding-left:0px;
+}
 </style>
