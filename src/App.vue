@@ -149,6 +149,7 @@ export default {
     }, 150),
 
     onMouseUp: function(pos) {
+      this.errors.push(pos);
       this.focus = null;
       var pad = 2;
 

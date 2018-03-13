@@ -72,7 +72,11 @@ function onTouchStart(evt) {
   }
   // check within
   if (isElementWithin(evt.srcElement)) {
-    mouseUpCallback({x:evt.touches[0].pageX, y:evt.touches[0].pageY, sx:evt.touches[0].screenX, sy:evt.touches[0].screenY});
+    mouseUpCallback({
+      x:evt.originalEvent.touches[0].pageX,
+      y:evt.originalEvent.touches[0].pageY,
+      sx:evt.originalEvent.touches[0].screenX,
+      sy:evt.originalEvent.touches[0].screenY});
   }
 }
 
@@ -90,7 +94,9 @@ function start(element, callback1, callback2, callback3) {
   document.addEventListener('selectionchange', onSelectionChange);
   window.addEventListener('resize', onDocumentResize)
   window.addEventListener('mouseup', onMouseUp);
-  window.addEventListener('touchstart', onTouchStart);
+  document.addEventListener('touchstart', onTouchStart);
+  // document.addEventListener('touchmove', onTouchStart);
+  // document.addEventListener('touchend', onTouchStart);
 }
 
 function stop() {
@@ -102,7 +108,9 @@ function stop() {
   document.removeEventListener('selectionchange', onSelectionChange);
   window.removeEventListener('resize', onDocumentResize)
   window.removeEventListener('mouseup', onMouseUp);
-  window.removeEventListener('touchstart', onTouchStart);
+  document.removeEventListener('touchstart', onTouchStart);
+  // document.removeEventListener('touchmove', onTouchStart);
+  // document.removeEventListener('touchend', onTouchStart);
 }
 
 export default {
