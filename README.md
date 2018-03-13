@@ -15,4 +15,4 @@ npm run dev
 npm run build
 ```
 
-For detailed explanation on how things work, consult the [docs for vue-loader](http://vuejs.github.io/vue-loader).
+This annotator does not mutate the source document but draws the highlights as separate elements.
