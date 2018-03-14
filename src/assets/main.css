@@ -1,0 +1,68 @@
+.annot8-canvas-svg {
+  border: 2px solid red;
+}
+.annot8-canvas-html {
+  border: 2px solid blue;
+}
+.annot8-hl {
+  fill:yellow;
+  fill-opacity:0.4;
+  stroke:0;
+  background-color:yellow;
+  opacity: 0.4;
+}
+.annot8-hl.annot8-active {
+  fill:yellow;
+  fill-opacity:0.8;
+  stroke:0;
+  background-color:yellow;
+  opacity: 0.8;
+}
+
+.annot8-hl-green {
+  fill:green;
+  fill-opacity:0.4;
+  stroke:0;
+  background-color:green;
+  opacity: 0.4;
+}
+.annot8-hl-green.annot8-active {
+  fill:red;
+  fill-opacity:0.8;
+  stroke:0;
+  background-color:green;
+  opacity: 0.8;
+}
+.annot8-button {
+  font-size: 12pt;
+  padding: 8px;
+  border-radius: 6px;
+  border: 0px;
+  background-color: gainsboro;
+}
+.annot8-toolbar-container {
+  width: 100%;
+  text-align: center;
+}
+.annot8-toolbar {
+  display: block;
+  padding: 4px;
+  background: red;
+}
+.annot8-toolbar-button {
+  font-size: 12pt;
+  --padding: 8px;
+  border-radius: 6px;
+  border: 0px;
+  background-color: gainsboro;
+}
+.annot8-disableSelection {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  outline: 0;
+  /*pointer-events:none;*/
+}
