@@ -77,6 +77,20 @@ export default {
       return this;
     },
 
+    currentAnnotation() {
+      var annotation = this.annotations[this.lastFocus];
+      if (annotation) {
+        return Object.assign({tag:''}, annotation);
+      }
+      return {
+        quote: this.selectionQuote
+      }
+    },
+
+    currentTag() {
+      return this.currentAnnotation.tag;
+    },
+
     selectionQuote() {
       var sel = this.selection || '';
       if (sel == '' && this.focus !== null) {
@@ -164,6 +178,8 @@ export default {
     setTimeout(() => {
       this.draw();
     }, 500);
+
+    this.onRead();
   },
 
   destroyed () {
@@ -186,7 +202,7 @@ export default {
       } catch(e) {
         this.log(e);
       }
-    }, 1250),
+    }, 550),
 
     calculateBoundsFromRects: function(rects) {
       var rect = {};
@@ -214,6 +230,11 @@ export default {
       rect.width = rect.x2 - rect.x;
       rect.height = rect.y2 - rect.y;
       rect.ready = true;
+
+      // ??
+      rect.x = rect.x + window.scrollX;
+      rect.y = rect.y + window.scrollY;
+
       this.selectionBounds = rect;
       this.selectionBounds.ready = true;
     },
@@ -259,7 +280,9 @@ export default {
         }
 
         if (this.focus >=0) {
-          this.calculateBoundsFromRects(rects);
+          setTimeout(() => {
+            this.calculateBoundsFromRects(rects);
+          }, 500);
         }
       });
     }, 150),
@@ -331,66 +354,73 @@ export default {
 
     // draw is actually computing the drawRect
     draw() {
+      this.annotations.forEach(a=> { this.drawAnnotation(a) });
+
+      // first, position the canvas
+      var canvasRect = this.root.getBoundingClientRect();
+      this.canvas.top = this.root.offsetTop;
+      this.canvas.left = this.root.offsetLeft;
+      this.canvas.width = canvasRect.width;
+      this.canvas.height = canvasRect.height;
+
+      // account for margins
       try {
-        this.annotations.forEach(a=> { this.drawAnnotation(a) });
-
-        // first, position the canvas
-        var canvasRect = this.root.getBoundingClientRect();
-        this.canvas.top = this.root.offsetTop;
-        this.canvas.left = this.root.offsetLeft;
-        this.canvas.width = canvasRect.width;
-        this.canvas.height = canvasRect.height;
-
-        // account for margins
-        try {
-          var marginTop = window.getComputedStyle(document.querySelector('html'))['margin-top'];
-          if (marginTop && false) {
-            marginTop = parseInt(marginTop)
-            this.canvas.top += marginTop;
-          }
-        } catch(e) {
-          //
+        var marginTop = window.getComputedStyle(document.querySelector('html'))['margin-top'];
+        if (marginTop && false) {
+          marginTop = parseInt(marginTop)
+          this.canvas.top += marginTop;
         }
-
-        // check first element
-        try {
-          var firstElementRect = this.root.firstElement.getBoundingClientRect();
-        } catch(e) {
-          //
-        }
-
-        var rects = [];
-        var idx = 0;
-        this.annotations.forEach(a=> {
-          a.rects.forEach(r=> {
-            // some error checking
-            if (!r) {
-              return;
-            }
-            rects.push({
-              x: r.x - 2,
-              y: r.y - 2,
-              width: r.width,
-              height: r.height,
-              idx: idx,
-              tag: a.tag,
-            });
-          });
-          idx++;
-        });
-
-        this.highlights = rects;
       } catch(e) {
-        this.log(e);
+        //
       }
+
+      // check first element
+      try {
+        var firstElementRect = this.root.firstElement.getBoundingClientRect();
+      } catch(e) {
+        //
+      }
+
+      var rects = [];
+      var idx = 0;
+      this.annotations.forEach(a=> {
+        a.rects.forEach(r=> {
+          // some error checking
+          if (!r) {
+            return;
+          }
+          rects.push({
+            x: r.x - 2,
+            y: r.y - 2,
+            width: r.width,
+            height: r.height,
+            idx: idx,
+            tag: a.tag,
+          });
+        });
+        idx++;
+      });
+
+      this.highlights = rects;
 
       // necessary fixes
       this.setZIndices();
     },
 
     drawAnnotation(annotation) {
+      annotation.rects = [];
+
       var obj = JSON.parse(annotation.range)
-      var range = toRange(obj.start, obj.startOffset, obj.end, obj.endOffset, this.root);
+      var range = null;
+      try {
+        range = toRange(obj.start, obj.startOffset, obj.end, obj.endOffset, this.root);
+      } catch(e) {
+        // document modified?
+        // mark for removal?
+        this.log(e);
+        return;
+      }
+
       var bound = this.root.getBoundingClientRect();
 
       // use X,Y
@@ -398,7 +428,6 @@ export default {
       bound.y = bound.y || bound.top;
 
       var rects = range.getClientRects();
-      annotation.rects = [];
       for(var i=0;i<rects.length;i++) {
         var rect = rects.item(i);
 
@@ -436,6 +465,28 @@ export default {
 
     log(error) {
       this.errors.push(error);
+    },
+
+    onRead: _.debounce(function() {
+      var source = this.$config.source;
+      var url = `${source.baseUrl}${source.read}`;
+      this.$http({method:'get',url:url})
+      .then((data)=>{
+        console.log(data);
+        this.loadSample();
+      })
+      .catch(err=>{
+        console.log(err);
+      })
+    }, 50),
+
+    onCreate(annotation) {
+    },
+
+    onUpdate(annotation) {
+    },
+
+    onDelete(annotation) {
     }
   },
 
@@ -448,6 +499,8 @@ export default {
 </script>
 
 <style>
+@import './assets/main.css';
+
 .annot8-app {
   margin:0px;
   margin-top:0px;
