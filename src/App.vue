@@ -15,7 +15,8 @@
       :top="canvas.top"
       :width="canvas.width"
       :height="canvas.height"
-      :highlights="highlights">
+      :highlights="highlights"
+      :a8="Me">
     </highlights-canvas>
 
   </div>
@@ -57,7 +58,16 @@ export default {
         left: 0,
         width: 400,
         height: 400
-      }
+      },
+
+      selectionBounds: {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0
+      },
+
+      mobile: -1
     }
   },
 
@@ -65,6 +75,20 @@ export default {
 
     Me() {
       return this;
+    },
+
+    currentAnnotation() {
+      var annotation = this.annotations[this.lastFocus];
+      if (annotation) {
+        return Object.assign({tag:''}, annotation);
+      }
+      return {
+        quote: this.selectionQuote
+      }
+    },
+
+    currentTag() {
+      return this.currentAnnotation.tag;
     },
 
     selectionQuote() {
@@ -84,10 +108,33 @@ export default {
       }
       return this.range;
     },
+
+    isMobile() {
+      if (this.mobile != -1) {
+        return this.mobile;
+      }
+
+      try {
+        var navigator = window.navigator;
+        if( navigator.userAgent.match(/Android/i)
+          || navigator.userAgent.match(/webOS/i)
+          || navigator.userAgent.match(/iPhone/i)
+          || navigator.userAgent.match(/iPad/i)
+          || navigator.userAgent.match(/iPod/i)
+          || navigator.userAgent.match(/BlackBerry/i)
+          || navigator.userAgent.match(/Windows Phone/i)
+        ){
+          return true;
+        }
+      } catch(e) {
+        this.log(e);
+      }
+
+      return false;
+    }
   },
 
   mounted () {
-
     // load config
     this.selector = this.$config.selector;
     this.svg = this.$config.svg;
@@ -107,7 +154,6 @@ export default {
     // re-parent the canvas
     try {
       this.root.appendChild(this.$el);
-      // this.root.insertBefore(this.$el, this.root.firstElementChild);
     } catch(e) {
       //
     }
@@ -123,6 +169,7 @@ export default {
       },
       /* mouse callback */
       (pos) => {
+        // this.log(pos);
         this.onMouseUp(pos);
       }
     );
@@ -131,6 +178,8 @@ export default {
     setTimeout(() => {
       this.draw();
     }, 500);
+
+    this.onRead();
   },
 
   destroyed () {
@@ -139,17 +188,72 @@ export default {
 
   methods: {
 
+    calculateSelectionBounds: _.debounce(function(range) {
+      if (range == null)
+        return;
+
+      if (this.isMobile) {
+        this.selectionBounds.ready = true;
+        return;
+      }
+
+      try {
+        this.calculateBoundsFromRects(range.getClientRects());
+      } catch(e) {
+        this.log(e);
+      }
+    }, 550),
+
+    calculateBoundsFromRects: function(rects) {
+      var rect = {};
+
+      for(var clientRect of rects) {
+        var x = clientRect.x || clientRect.left;
+        var y = clientRect.y || clientRect.top;
+        var x2 = x + (clientRect.width || 0);
+        var y2 = y + (clientRect.height || 0);
+
+        if (rect.x > x || !rect.x) {
+          rect.x = x;
+        }
+        if (rect.y > y || !rect.y) {
+          rect.y = y;
+        }
+        if (rect.x2 < x2 || !rect.x2) {
+          rect.x2 = x2;
+        }
+        if (rect.y2 < y2 || !rect.y2) {
+          rect.y2 = y2;
+        }
+      }
+
+      rect.width = rect.x2 - rect.x;
+      rect.height = rect.y2 - rect.y;
+      rect.ready = true;
+
+      // ??
+      rect.x = rect.x + window.scrollX;
+      rect.y = rect.y + window.scrollY;
+
+      this.selectionBounds = rect;
+      this.selectionBounds.ready = true;
+    },
+
     onSelectionChanged: _.debounce(function(sel, range) {
       this.selection = sel;
       this.range = range ? fromRange(range, this.root) : null;
-    }, 250),
+      this.selectionBounds.ready = false;
+      this.calculateSelectionBounds(range);
+      if (range) {
+        this.focus = null;
+      }
+    }, 50),
 
     onDocumentResized: _.debounce(function() {
       this.draw();
     }, 150),
 
-    onMouseUp: function(pos) {
-      this.errors.push(pos);
+    onMouseUp: _.debounce(function(pos) {
       this.focus = null;
       var pad = 2;
 
@@ -157,8 +261,12 @@ export default {
       pos.x = pos.x - window.scrollX;
       pos.y = pos.y - window.scrollY;
 
+      // get hit highlight
+      var rects = [];
       document.querySelectorAll('.annot8-hl').forEach( n=> {
         var h = n.getClientRects()[0];
+        h.x = h.x || h.left;
+        h.y = h.y || h.top;
         var left = h.x - pad;
         var right = h.x + h.width + pad;
         var top = h.y - pad;
@@ -167,9 +275,17 @@ export default {
             top < pos.y && bottom > pos.y) {
           this.focus = parseInt(n.dataset.idx);
           this.lastFocus = this.focus;
+          // rects.push({x:h.x, y:h.y, width:h.right-h.left, height:h.bottom-h.top});
+          rects.push({x:pos.x, y:h.y, width:2, height:h.bottom-h.top});
+        }
+
+        if (this.focus >=0) {
+          setTimeout(() => {
+            this.calculateBoundsFromRects(rects);
+          }, 500);
         }
       });
-    },
+    }, 150),
 
     loadSample() {
       const data = [
@@ -184,28 +300,45 @@ export default {
       this.clearSelection();
     },
 
-    annotate(tag) {
-      if (!this.selection)
-        return;
-
-      this.tag = tag || '';
-
+    _createAnnotation() {
       this.annotations.push({
-        quote: this.selection.toString(),
-        range: JSON.stringify(this.range),
-        rects: [],
-        tag: this.tag
-      });
+          quote: this.selection.toString(),
+          range: JSON.stringify(this.range),
+          rects: [],
+          tag: this.tag
+        });
+    },
+
+    _updateAnnotation(id) {
+      var annotation = this.annotations[id];
+      if (annotation) {
+        annotation.tag = this.tag;
+      }
+    },
+
+    annotate(params) {
+      params = params || {};
+      this.tag = params.tag || '';
+
+      if (this.selection) {
+        this._createAnnotation();
+      } else if (params.id != undefined) {
+        this._updateAnnotation(params.id);
+      }
 
       this.draw();
       this.clearSelection();
     },
 
     erase(idx) {
-      console.log(idx);
-      this.annotations.splice(idx,1);
-      this.draw();
-      this.clearSelection();
+      try {
+        this.annotations.splice(idx,1);
+        this.draw();
+        this.clearSelection();
+        this.lastFocus = null;
+      } catch(e) {
+
+      }
     },
 
     setZIndices() {
@@ -221,67 +354,73 @@ export default {
 
     // draw is actually computing the drawRect
     draw() {
+      this.annotations.forEach(a=> { this.drawAnnotation(a) });
+
+      // first, position the canvas
+      var canvasRect = this.root.getBoundingClientRect();
+      this.canvas.top = this.root.offsetTop;
+      this.canvas.left = this.root.offsetLeft;
+      this.canvas.width = canvasRect.width;
+      this.canvas.height = canvasRect.height;
+
+      // account for margins
       try {
-        this.annotations.forEach(a=> { this.drawAnnotation(a) });
-
-        // first, position the canvas
-        var canvasRect = this.root.getBoundingClientRect();
-        this.canvas.top = this.root.offsetTop;
-        this.canvas.left = this.root.offsetLeft;
-        this.canvas.width = canvasRect.width;
-        this.canvas.height = canvasRect.height;
-
-        // account for margins
-        try {
-          var marginTop = window.getComputedStyle(document.querySelector('html'))['margin-top'];
-          if (marginTop) {
-            marginTop = parseInt(marginTop)
-            this.canvas.top += marginTop;
-          }
-        } catch(e) {
-          //
+        var marginTop = window.getComputedStyle(document.querySelector('html'))['margin-top'];
+        if (marginTop && false) {
+          marginTop = parseInt(marginTop)
+          this.canvas.top += marginTop;
         }
-
-        // check first element
-        try {
-          var firstElementRect = this.root.firstElement.getBoundingClientRect();
-          console.log(firstElementRect);
-        } catch(e) {
-          //
-        }
-
-        var rects = [];
-        var idx = 0;
-        this.annotations.forEach(a=> {
-          a.rects.forEach(r=> {
-            // some error checking
-            if (!r) {
-              return;
-            }
-            rects.push({
-              x: r.x - 2,
-              y: r.y - 2,
-              width: r.width,
-              height: r.height,
-              idx: idx,
-              tag: a.tag,
-            });
-          });
-          idx++;
-        });
-
-        this.highlights = rects;
       } catch(e) {
-        this.errors.push(e);
+        //
       }
+
+      // check first element
+      try {
+        var firstElementRect = this.root.firstElement.getBoundingClientRect();
+      } catch(e) {
+        //
+      }
+
+      var rects = [];
+      var idx = 0;
+      this.annotations.forEach(a=> {
+        a.rects.forEach(r=> {
+          // some error checking
+          if (!r) {
+            return;
+          }
+          rects.push({
+            x: r.x - 2,
+            y: r.y - 2,
+            width: r.width,
+            height: r.height,
+            idx: idx,
+            tag: a.tag,
+          });
+        });
+        idx++;
+      });
+
+      this.highlights = rects;
 
       // necessary fixes
       this.setZIndices();
     },
 
     drawAnnotation(annotation) {
+      annotation.rects = [];
+
       var obj = JSON.parse(annotation.range)
-      var range = toRange(obj.start, obj.startOffset, obj.end, obj.endOffset, this.root);
+      var range = null;
+      try {
+        range = toRange(obj.start, obj.startOffset, obj.end, obj.endOffset, this.root);
+      } catch(e) {
+        // document modified?
+        // mark for removal?
+        this.log(e);
+        return;
+      }
+
       var bound = this.root.getBoundingClientRect();
 
       // use X,Y
@@ -289,7 +428,6 @@ export default {
       bound.y = bound.y || bound.top;
 
       var rects = range.getClientRects();
-      annotation.rects = [];
       for(var i=0;i<rects.length;i++) {
         var rect = rects.item(i);
 
@@ -318,11 +456,37 @@ export default {
       this.selection = null;
       this.range = null;
       this.focus = null;
-      this.lastFocus = null;
+      // this.lastFocus = null;
     },
 
     toggleRenderer() {
       this.svg = !this.svg;
+    },
+
+    log(error) {
+      this.errors.push(error);
+    },
+
+    onRead: _.debounce(function() {
+      var source = this.$config.source;
+      var url = `${source.baseUrl}${source.read}`;
+      this.$http({method:'get',url:url})
+      .then((data)=>{
+        console.log(data);
+        this.loadSample();
+      })
+      .catch(err=>{
+        console.log(err);
+      })
+    }, 50),
+
+    onCreate(annotation) {
+    },
+
+    onUpdate(annotation) {
+    },
+
+    onDelete(annotation) {
     }
   },
 
@@ -334,7 +498,9 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
+@import './assets/main.css';
+
 .annot8-app {
   margin:0px;
   margin-top:0px;

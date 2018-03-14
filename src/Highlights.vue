@@ -1,8 +1,10 @@
 <template>
 <div class="annot8-canvas-container">
 <!-- SVG based renderer -->
+
+<!--
 <svg v-if="svg"
-    class="annot8-canvas disableSelection annot8-canvas-svg"
+    class="annot8-canvas annot8-disableSelection annot8-canvas-svg"
     :width="width" :height="height"
     style="position: absolute; top:0px; left:0px"
     :style="getStylePosition">
@@ -16,8 +18,9 @@
     :key="index"
     :data-idx="h.idx"/>
 </svg>
+-->
 <!-- HTML5 based renderer -->
-<div v-if="!svg" class="annot8-canvas disableSelection annot8-canvas-html"
+<div class="annot8-canvas annot8-disableSelection annot8-canvas-html"
     style="display:block;position: absolute; top:0px; left:0px"
     :style="getStyleRect">
   <div class="annot8-hl"
@@ -49,7 +52,6 @@ export default {
     getStylePosition() {
       var container = document.querySelector('.annot8-canvas-container');
       var offset = container.style.paddingTop;
-      console.log(offset);
       return [ { 'z-index': (this.zIndex || -1) }, { 'top': (this.top + 1) + 'px' }, {'left': (this.left + 1) + 'px' } ];
     },
     getStyleRect() {
@@ -69,16 +71,6 @@ export default {
 </script>
 
 <style>
-.annot8-canvas.disableSelection {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    outline: 0;
-    pointer-events:none;
-}
 .annot8-canvas-container {
 }
 </style>

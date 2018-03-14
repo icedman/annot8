@@ -28,16 +28,18 @@ function onSelectionChange(evt) {
   try {
       var sel = window.getSelection();
       if (sel != null) {
+        if (isElementWithin(sel.anchorNode) && isElementWithin(sel.focusNode)) {
           var range = sel.getRangeAt(0);
           if (range != null) {
-              if (isElementWithin(range.commonAncestorContainer)) {
+              // if (isElementWithin(range.commonAncestorContainer)) {
                   if (range.toString() !== '') {
                       hasSelection = true;
                       selection = sel;
                       selectedRange = range;
                   }
-              }
+              // }
           }
+        }
       }
 
   } catch (err) {
@@ -72,11 +74,14 @@ function onTouchStart(evt) {
   }
   // check within
   if (isElementWithin(evt.srcElement)) {
+    var touch = evt.changedTouches[0];
+    // var touch = evt.touches[0];
     mouseUpCallback({
-      x:evt.originalEvent.touches[0].pageX,
-      y:evt.originalEvent.touches[0].pageY,
-      sx:evt.originalEvent.touches[0].screenX,
-      sy:evt.originalEvent.touches[0].screenY});
+      x:touch.pageX,
+      y:touch.pageY,
+      sx:touch.screenX,
+      sy:touch.screenY,
+      evt:'touch'});
   }
 }
 
@@ -94,9 +99,9 @@ function start(element, callback1, callback2, callback3) {
   document.addEventListener('selectionchange', onSelectionChange);
   window.addEventListener('resize', onDocumentResize)
   window.addEventListener('mouseup', onMouseUp);
-  document.addEventListener('touchstart', onTouchStart);
-  // document.addEventListener('touchmove', onTouchStart);
-  // document.addEventListener('touchend', onTouchStart);
+  // document.body.addEventListener('touchstart', onTouchStart);
+  // document.body.addEventListener('touchmove', onTouchStart);
+  document.body.addEventListener('touchend', onTouchStart);
 }
 
 function stop() {
@@ -108,9 +113,9 @@ function stop() {
   document.removeEventListener('selectionchange', onSelectionChange);
   window.removeEventListener('resize', onDocumentResize)
   window.removeEventListener('mouseup', onMouseUp);
-  document.removeEventListener('touchstart', onTouchStart);
-  // document.removeEventListener('touchmove', onTouchStart);
-  // document.removeEventListener('touchend', onTouchStart);
+  // document.body.removeEventListener('touchstart', onTouchStart);
+  // document.body.removeEventListener('touchmove', onTouchStart);
+  document.body.removeEventListener('touchend', onTouchStart);
 }
 
 export default {
