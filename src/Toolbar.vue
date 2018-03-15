@@ -3,19 +3,12 @@
   <div class="annot8-toolbar" :style="getStylePosition">
   <div class="annot8-toolbar-inner">
 
-    <span v-if="showCreateToolbar">
-    <div class="annot8-toolbar-button" :class="['annot8-'+btn.action]"
-      @click="clickButton(btn)" v-for="btn in getButtons('create')">
+    <div class="annot8-toolbar-button"
+      :class="'annot8-'+btn.action"
+      :data-tag="getButtonDataTag(btn)"
+      @click="clickButton(btn)" v-for="btn in toolbarButtons">
       <span class="annot8-toolbar-icon" v-html="btn.icon"></span>
     </div>
-    </span>
-
-    <span v-if="showEditToolbar">
-    <div class="annot8-toolbar-button" :class="[ 'annot8-'+btn.action, 'annot8-'+a8.currentTag]"
-      @click="clickButton(btn)" v-for="btn in getButtons('edit')">
-      <span class="annot8-toolbar-icon" v-html="btn.icon"></span>
-    </div>
-    </span>
 
   </div>
   </div>
@@ -30,14 +23,18 @@ export default {
     forceMobile: false, // for testing only!
     toolbarRect: { width:0, height:0, spyInterval: 0 },
     buttons: [],
-    currentToolbar: null
+    currentToolbar: ''
   }},
 
   props: {
     a8: Object
   },
   computed: {
-    getContainerStylePosition() { 
+    toolbarButtons() {
+      return this.buttons.filter(b=>b.tool === this.a8.showToolbar);
+    },
+
+    getContainerStylePosition() {
       if (this.a8.isMobile || this.forceMobile) {
         return [ { position: 'fixed', bottom: '0px'} ];
       }
@@ -48,18 +45,24 @@ export default {
       if (this.a8.isMobile || this.forceMobile) {
         return [ { bottom: '0px' } ];
       }
-      var show = this.showCreateToolbar || this.showEditToolbar;
+      var show = this.a8.showToolbar != '';
       var opacity = !show || !this.toolbarRect.width ||
         this.toolbarRect.spyInterval ? 0: 1;
       var bounds = this.a8.selectionBounds;
       var left = bounds.x + (bounds.width/2) - (this.toolbarRect.width/2);
       var top = bounds.y - this.toolbarRect.height;
 
-      var tw = this.toolbarRect.width;
-      if (left + tw > window.screen.availWidth) {
-        left = window.screen.availWidth - tw - this.toolbarRect.width;
+      // force within screen
+      var tw = this.toolbarRect.width * 1.2;
+      if (left + tw + 40 > window.screen.availWidth) {
+        left = window.screen.availWidth - tw - 40;
       } else if (left < 40) {
         left = 40;
+      }
+      if (top < 0) {
+        top = bounds.y + bounds.height + 10;
+        this.a8.log(bounds);
+        this.a8.log(top);
       }
 
       return [
@@ -71,16 +74,6 @@ export default {
         { opacity: opacity }
       ];
     },
-    showCreateToolbar() {
-      if (!this.a8.selectionBounds.ready && !this.a8.isMobile)
-        return false;
-      return this._setCurrentToolbar('create', (this.a8.selection && this.a8.focus === null));
-    },
-    showEditToolbar() {
-      if (!this.a8.selectionBounds.ready && !this.a8.isMobile)
-        return false;
-      return this._setCurrentToolbar('edit', (this.a8.selection === null && this.a8.focus !== null));
-    }
   },
   mounted() {
     // re-parent the toolbar
@@ -90,59 +83,62 @@ export default {
       // console.log(e);
     }
 
-    setTimeout(()=>{
+    var intervalId = setInterval(()=>{
       this.buttons = [];
       this.createButtons();
-    }, 50);
+      if (this.buttons.length > 0) {
+        clearInterval(intervalId);
+      }
+    }, 150);
 
   },
   methods: {
-    getButtons(tool) {
-      return this.buttons.filter(b=>b.tool==tool);
+    getButtonDataTag(btn) {
+      if (btn.action == 'tags') {
+        return this.a8.currentTag;
+      }
+      return btn.tag;
     },
-
     createButtons() {
       // create the buttons
       if (this.$config.buttons) {
+        var btns = [];
         this.$config.buttons.forEach((btn)=>{
           btn.icon = document.querySelector(btn.icon).outerHTML;
-          this.buttons.push(btn);
-        })
+          btns.push(btn);
+        });
+        this.buttons = btns;
       }
-
       this.computeToolbarSize();
     },
 
-    _setCurrentToolbar(tool, res) {
-      if (!res) {
-        return false;
-      }
-      if (tool != this.currentToolbar) {
-        this.computeToolbarSize();
-      }
-      this.currentToolbar = tool;
-      return true;
-    },
-
-    changeColor(color) {
-      var params = {id:this.a8.lastFocus, tag:color};
-      this.a8.annotate(params);
-    },
-
     clickButton(btn) {
-      var params = {id:this.a8.lastFocus, tag:'yellow'};
+      var params = {
+        id:this.a8.lastFocus,
+        tag:btn.tag || this.a8.currentTag || 'yellow'
+      };
+
       if (typeof(btn.action) === 'function') {
         btn.action(this.a8.currentAnnotation);
         this.a8.clearSelection();
         return;
       }
+
       switch(btn.action) {
         case 'annotate': {
-          if (this.showEditToolbar) {
+          if (this.a8.showToolbar =='edit') {
             this.a8.erase(this.a8.lastFocus);
             return;
           }
           this.a8.annotate(params);
+          break;
+        }
+        case 'tags': {
+          if (this.a8.currentToolbar == 'tags') {
+            this.a8.currentToolbar = '';
+          } else {
+            this.a8.currentToolbar = 'tags';
+          }
           break;
         }
       }

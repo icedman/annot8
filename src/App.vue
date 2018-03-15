@@ -56,8 +56,8 @@ export default {
       canvas: {
         top: 0,
         left: 0,
-        width: 400,
-        height: 400
+        width: 600,
+        height: 40
       },
 
       selectionBounds: {
@@ -67,7 +67,8 @@ export default {
         height: 0
       },
 
-      mobile: -1
+      mobile: null,
+      currentToolbar: ''
     }
   },
 
@@ -88,7 +89,7 @@ export default {
     },
 
     currentTag() {
-      return this.currentAnnotation.tag;
+      return this.tag || 'yellow';
     },
 
     selectionQuote() {
@@ -110,27 +111,38 @@ export default {
     },
 
     isMobile() {
-      if (this.mobile != -1) {
+      if (this.mobile != null) {
         return this.mobile;
       }
 
       try {
         var navigator = window.navigator;
-        if( navigator.userAgent.match(/Android/i)
+        this.mobile = ( navigator.userAgent.match(/Android/i)
           || navigator.userAgent.match(/webOS/i)
           || navigator.userAgent.match(/iPhone/i)
           || navigator.userAgent.match(/iPad/i)
           || navigator.userAgent.match(/iPod/i)
           || navigator.userAgent.match(/BlackBerry/i)
           || navigator.userAgent.match(/Windows Phone/i)
-        ){
-          return true;
-        }
+        );
       } catch(e) {
         this.log(e);
       }
 
-      return false;
+      return this.mobile;
+    },
+
+    showToolbar() {
+      if (!this.selectionBounds.ready) {
+        return '';
+      }
+      if (this.selection && this.focus === null) {
+        return this.currentToolbar || 'create';
+      }
+      if (this.selection === null && this.focus !== null) {
+        return this.currentToolbar || 'edit';
+      }
+      return '';
     }
   },
 
@@ -328,6 +340,7 @@ export default {
 
       this.draw();
       this.clearSelection();
+      this.currentToolbar = '';
     },
 
     erase(idx) {

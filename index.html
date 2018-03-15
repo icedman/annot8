@@ -45,7 +45,7 @@
       console.log(annotation);
     }
     function annot8FB(annotation) {
-      console.log(annotation); 
+      console.log(annotation);
     }
     function annot8Comment(annotation) {
       console.log(annotation);
@@ -61,13 +61,19 @@
       },
       buttons: [
         { action:'annotate',  title:'Highlight', icon:'#si-entypo-brush',     tool: 'create' },
-        { action:'annotate',  title:'Tag', icon:'#si-awesome-tags',   tool: 'create' },
-        { action:'annotate',  title:'Tag', icon:'#si-awesome-tags',   tool: 'edit' },
-        // { action:'annotate',  title:'Highlight', icon:'#si-entypo-brush',     tool: 'edit' },
+        { action:'tags',      title:'Tag', icon:'#si-awesome-tags',   tool: 'create' },
+
+        { action:'tags',      title:'Tag', icon:'#si-awesome-tags',   tool: 'tags' },
+        { action:'annotate',  title:'Tag', icon:'#si-awesome-tag',    tool: 'tags', tag: 'facts' },
+        { action:'annotate',  title:'Tag', icon:'#si-awesome-tag',    tool: 'tags', tag: 'issues' },
+        { action:'annotate',  title:'Tag', icon:'#si-awesome-tag',    tool: 'tags', tag: 'ruling' },
+        { action:'annotate',  title:'Tag', icon:'#si-awesome-tag',    tool: 'tags', tag: 'principles' },
+
+        { action:'tags',      title:'Tag',       icon:'#si-awesome-tags',     tool: 'edit' },
         { action:annot8Tweet, title:'Tweet',     icon:'#si-awesome-twitter',  tool: 'edit' },
         { action:annot8FB,    title:'Facebook',  icon:'#si-awesome-facebook', tool: 'edit' },
         { action:annot8Comment, title:'Comment', icon:'#si-awesome-comment',  tool: 'edit' },
-        { action:'annotate', title:'Erase', icon:'#si-bootstrap-erase',  tool: 'edit' }
+        { action:'annotate',  title:'Erase',     icon:'#si-bootstrap-erase',  tool: 'edit' }
       ]
     };
     </script>

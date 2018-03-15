@@ -5,32 +5,11 @@
   --border: 2px solid blue;
 }
 .annot8-hl {
-  fill:yellow;
-  fill-opacity:0.4;
-  stroke:0;
+  opacity: 0.5;
   background-color:yellow;
-  opacity: 0.4;
 }
 .annot8-hl.annot8-active {
-  fill:yellow;
-  fill-opacity:0.8;
-  stroke:0;
-  background-color:yellow;
-  opacity: 0.8;
-}
-.annot8-hl-green {
-  fill:green;
-  fill-opacity:0.4;
-  stroke:0;
-  background-color:green;
-  opacity: 0.4;
-}
-.annot8-hl-green.annot8-active {
-  fill:red;
-  fill-opacity:0.8;
-  stroke:0;
-  background-color:green;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 .annot8-button {
   font-size: 12pt;
@@ -67,7 +46,7 @@
   background: transparent;
   color: #fff;
   width: 40px;
-  height: 28px;  
+  height: 28px;
   padding-top: 8px;
   padding-bottom: 4px;
   border: 0px;
@@ -78,6 +57,20 @@
   fill: #fff;
   display: inline-block;
 }
+
+.annot8-toolbar-button[data-tag='yellow'] .annot8-toolbar-icon {
+  color: yellow;
+  fill: yellow;
+}
+.annot8-toolbar-button[data-tag='green'] .annot8-toolbar-icon {
+  color: green;
+  fill: green;
+}
+.annot8-toolbar-button[data-tag='blue'] .annot8-toolbar-icon {
+  color: blue;
+  fill: blue;
+}
+
 .annot8-disableSelection {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -88,3 +81,20 @@
   outline: 0;
   /*pointer-events:none;*/
 }
+
+.annot8-toolbar-button[data-tag='facts'] .annot8-toolbar-icon,
+.annot8-tag-facts         { color: rgba(255,255,0,0.85);    fill: rgba(255,255,0,0.85);}
+.annot8-toolbar-button[data-tag='issues'] .annot8-toolbar-icon,
+.annot8-tag-issues        { color: rgba(180,255,180,0.85);  fill: rgba(180,255,180,0.85);}
+.annot8-toolbar-button[data-tag='ruling'] .annot8-toolbar-icon,
+.annot8-tag-ruling        { color: rgba(120,180,255,0.85);  fill: rgba(120,180,255,0.85);}
+.annot8-toolbar-button[data-tag='principles'] .annot8-toolbar-icon,
+.annot8-tag-principles    { color: rgba(180,120,255,0.85);  fill: rgba(180,120,255,0.85);}
+.annot8-toolbar-button[data-tag='important'] .annot8-toolbar-icon,
+.annot8-tag-important     { color: rgba(180,120,255,0.85);  fill: rgba(180,120,255,0.85);}
+
+.annot8-hl-facts         { background-color: rgba(255,255,0,0.85); }
+.annot8-hl-issues        { background-color: rgba(180,255,180,0.85); }
+.annot8-hl-ruling        { background-color: rgba(120,180,255,0.85); }
+.annot8-hl-principles    { background-color: rgba(180,120,255,0.85); }
+.annot8-hl-important     { background-color: rgba(180,120,255,0.85); }
