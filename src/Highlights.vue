@@ -2,7 +2,6 @@
 <div class="annot8-canvas-container">
 <!-- SVG based renderer -->
 
-<!--
 <svg v-if="svg"
     class="annot8-canvas annot8-disableSelection annot8-canvas-svg"
     :width="width" :height="height"
@@ -18,7 +17,7 @@
     :key="index"
     :data-idx="h.idx"/>
 </svg>
--->
+
 <!-- HTML5 based renderer -->
 <div class="annot8-canvas annot8-disableSelection annot8-canvas-html"
     style="display:block;position: absolute; top:0px; left:0px"

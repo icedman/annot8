@@ -1,0 +1,146 @@
+
+$hl-color1: rgba(255,255,0,0.85);   /*yellow*/
+$hl-color2: rgba(180,255,180,0.85); /*green*/
+$hl-color3: rgba(160,160,255,0.85); /*blue*/
+$hl-color4: rgba(180,120,255,0.85); /*purple*/
+$hl-color5: rgba(255,120,120,0.85); /*red*/
+$hl-color6: rgba(255,120,120,0.85); /*red*/
+
+$hl-color1: rgb(255,255,0);   /*yellow*/
+$hl-color2: rgb(100,255,100); /*green*/
+$hl-color3: rgb( 60,120,255); /*blue*/
+$hl-color4: rgb(180,120,255); /*purple*/
+$hl-color5: rgb(255,100,100); /*red*/
+$hl-color6: rgb(255,100,100); /*red*/
+
+.annot8-app {
+  margin:0px;
+  margin-top:0px;
+  margin-left:0px;
+  padding:0px;
+  padding-top:0px;
+  padding-left:0px;
+}
+.annot8-canvas-svg {
+  --border: 2px solid red;
+}
+.annot8-canvas-html {
+  --border: 2px solid blue;
+}
+@media print
+{    
+    .annot8-canvas-svg,
+    .annot8-canvas-html
+    {
+        display: none !important;
+    }
+}
+.annot8-button {
+  font-size: 12pt;
+  padding: 8px;
+  border-radius: 6px;
+  border: 0px;
+  --background-color: gainsboro;
+}
+.annot8-toolbar-container {
+  width: 100%;
+  text-align: center;
+  --border: 2px solid red;
+}
+.annot8-toolbar {
+  display: block;
+  min-width: 200px;
+  --padding: 4px;
+  --border: 2px solid red;
+  --background-color: #c0c0c0;
+  transition: opacity 250ms;
+}
+.annot8-toolbar-inner {
+  background-image: linear-gradient(to bottom,rgba(49,49,47,.99),#262625);
+  background-repeat: repeat-x;
+  display: inline-block;
+  border-radius: 5px;
+  height: 38px;
+  --border: 1px solid red;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+.annot8-toolbar-button {
+  display: inline-block;
+  overflow: hidden;
+  background: transparent;
+  color: #fff;
+  width: 40px;
+  height: 28px;
+  padding-top: 8px;
+  padding-bottom: 4px;
+  border: 0px;
+  --border:1px solid red;
+}
+.annot8-toolbar-icon {
+  color: #fff;
+  fill: #fff;
+  display: inline-block;
+}
+
+.annot8-toolbar-button[data-tag='yellow'] .annot8-toolbar-icon {
+  color: yellow;
+  fill: yellow;
+}
+.annot8-toolbar-button[data-tag='green'] .annot8-toolbar-icon {
+  color: green;
+  fill: green;
+}
+.annot8-toolbar-button[data-tag='blue'] .annot8-toolbar-icon {
+  color: blue;
+  fill: blue;
+}
+
+.annot8-disableSelection {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  outline: 0;
+}
+
+.annot8-toolbar-button[data-tag='tag1'] .annot8-toolbar-icon,
+.annot8-tag-tag1 { color: $hl-color1;    fill: $hl-color1;}
+.annot8-toolbar-button[data-tag='tag2'] .annot8-toolbar-icon,
+.annot8-tag-tag2 { color: $hl-color2;  fill: $hl-color2;}
+.annot8-toolbar-button[data-tag='tag3'] .annot8-toolbar-icon,
+.annot8-tag-tag3 { color: $hl-color3;  fill: $hl-color3;}
+.annot8-toolbar-button[data-tag='tag4'] .annot8-toolbar-icon,
+.annot8-tag-tag4 { color: $hl-color4;  fill: $hl-color4;}
+.annot8-toolbar-button[data-tag='tag5'] .annot8-toolbar-icon,
+.annot8-tag-tag5 { color: $hl-color5;  fill: $hl-color5;}
+.annot8-toolbar-button[data-tag='tag6'] .annot8-toolbar-icon,
+.annot8-tag-tag6 { color: $hl-color5;  fill: $hl-color5;}
+
+.annot8-hl {
+  fill-opacity: 0.5;
+  fill:$hl-color1;
+  opacity: 0.5;
+  background-color:$hl-color1;
+}
+.annot8-hl.annot8-active {
+  fill-opacity: 0.9;
+  opacity: 0.9;
+}
+
+.annot8-hl-tag1 { background-color: $hl-color1; }
+.annot8-hl-tag2 { background-color: $hl-color2; }
+.annot8-hl-tag3 { background-color: $hl-color3; }
+.annot8-hl-tag4 { background-color: $hl-color4; }
+.annot8-hl-tag5 { background-color: $hl-color5; }
+.annot8-hl-tag6 { background-color: $hl-color6; }
+
+.annot8-hl-tag1 { fill: $hl-color1; }
+.annot8-hl-tag2 { fill: $hl-color2; }
+.annot8-hl-tag3 { fill: $hl-color3; }
+.annot8-hl-tag4 { fill: $hl-color4; }
+.annot8-hl-tag5 { fill: $hl-color5; }
+.annot8-hl-tag6 { fill: $hl-color6; }
+
+.annot8-hl-tag6 { background-color: transparent; border-bottom:2px solid $hl-color6; }

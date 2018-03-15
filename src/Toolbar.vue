@@ -115,7 +115,7 @@ export default {
     clickButton(btn) {
       var params = {
         id:this.a8.lastFocus,
-        tag:btn.tag || this.a8.currentTag || 'yellow'
+        tag:btn.tag || this.a8.currentTag
       };
 
       if (typeof(btn.action) === 'function') {
