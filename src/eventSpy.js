@@ -43,7 +43,7 @@ function onSelectionChange(evt) {
       }
 
   } catch (err) {
-      // console.log(err);
+      // this.log(err);
   }
 
   if (!hasSelection) {

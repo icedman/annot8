@@ -19,6 +19,12 @@
       :a8="Me">
     </highlights-canvas>
 
+    <div style="display:none">
+      <a target="_blank" id="annot8_twitter_link" href=""></a>
+      <a target="_blank" id="annot8_facebook_link" href=""></a>
+    </div>
+    <icons/>
+    
   </div>
 </template>
 
@@ -30,6 +36,7 @@ import { toRange, fromRange } from 'xpath-range';
 import Toolbar from './Toolbar.vue';
 import Highlights from './Highlights.vue';
 import Debug from './Debug.vue';
+import Icons from './Icons.vue';
 
 export default {
   name: 'annot8-app',
@@ -89,7 +96,7 @@ export default {
     },
 
     currentTag() {
-      return this.tag || 'yellow';
+      return this.tag;
     },
 
     selectionQuote() {
@@ -477,6 +484,9 @@ export default {
     },
 
     log(error) {
+      if (!this.debug) {
+        return;
+      }
       this.errors.push(error);
     },
 
@@ -506,20 +516,12 @@ export default {
   components: {
     'toolbar': Toolbar,
     'highlights-canvas': Highlights,
-    'debugger': Debug
+    'debugger': Debug,
+    'icons': Icons
   }
 }
 </script>
 
-<style>
-@import './assets/main.css';
-
-.annot8-app {
-  margin:0px;
-  margin-top:0px;
-  margin-left:0px;
-  padding:0px;
-  padding-top:0px;
-  padding-left:0px;
-}
+<style lang="sass">
+@import './assets/main.scss';
 </style>
