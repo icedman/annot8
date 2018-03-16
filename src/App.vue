@@ -13,6 +13,8 @@
       :active="focus"
       :left="canvas.left"
       :top="canvas.top"
+      :offX="canvas.offX"
+      :offY="canvas.offY"
       :width="canvas.width"
       :height="canvas.height"
       :highlights="highlights"
@@ -45,7 +47,7 @@ export default {
   data () {
 
     return {
-      selector: 'article',
+      selector: [ 'article' ],
       svg: false,
       debug: false,
       zIndex: -1,
@@ -65,7 +67,9 @@ export default {
         top: 0,
         left: 0,
         width: 600,
-        height: 40
+        height: 40,
+        offX: null,
+        offY: null
       },
 
       selectionBounds: {
@@ -159,49 +163,7 @@ export default {
   },
 
   mounted () {
-    // load config
-    this.selector = this.$config.selector || [ 'article' ];
-    this.svg = this.$config.svg;
-    this.debug = this.$config.debug;
-
-    this.root = document.body;
-    for(var sel of this.selector) {
-      var elm = document.querySelector(sel);
-      if (elm) {
-        this.root = elm;
-        this.selector = sel;
-        break;
-      }
-    }
-
-    // re-parent the canvas
-    try {
-      this.root.appendChild(this.$el);
-    } catch(e) {
-    }
-
-    EventSpy.start(this.root,
-      /* selection callback */
-      (sel, range) => {
-        this.onSelectionChanged(sel, range);
-      },
-      /* resize callback */
-      () => {
-        this.onDocumentResized();
-      },
-      /* mouse callback */
-      (pos) => {
-        // this.log(pos);
-        this.onMouseUp(pos);
-      }
-    );
-
-    window.Annot8 = this;
-    setTimeout(() => {
-      this.draw();
-    }, 500);
-
-    this.onRead();
+    this.init();
   },
 
   destroyed () {
@@ -209,6 +171,68 @@ export default {
   },
 
   methods: {
+    init() {
+      // load config
+      this.selector = this.$config.selector;
+      this.svg = this.$config.svg;
+      this.debug = this.$config.debug;
+
+      // find selector
+      this.root = document.body;
+      for(var sel of this.selector) {
+        var elm = document.querySelector(sel);
+        if (elm) {
+          this.root = elm;
+          this.selector = sel;
+          break;
+        }
+      }
+
+      // re-parent the canvas
+      try {
+        this.root.appendChild(this.$el);
+      } catch(e) {
+      }
+
+      // get margin hint
+      for(var sheet of document.styleSheets) {
+        try {
+          for(var rule of sheet.rules) {
+            if (rule.selectorText.indexOf('html') != -1) {
+              if (rule.cssText.indexOf('!important') != -1) {
+                console.log(rule.cssText);
+              }
+            }
+          }
+        } catch(e) {
+          // skip errors
+        }
+      }
+
+      // run!
+      EventSpy.start(this.root,
+        /* selection callback */
+        (sel, range) => {
+          this.onSelectionChanged(sel, range);
+        },
+        /* resize callback */
+        () => {
+          this.onDocumentResized();
+        },
+        /* mouse callback */
+        (pos) => {
+          // this.log(pos);
+          this.onMouseUp(pos);
+        }
+      );
+
+      window.Annot8 = this;
+      setTimeout(() => {
+        this.draw();
+      }, 500);
+
+      this.onRead();
+    },
 
     calculateSelectionBounds: _.debounce(function(range) {
       if (range == null)
@@ -378,6 +402,14 @@ export default {
       }
     },
 
+    accountForOffsets: _.debounce(function() {
+      var canvas = document.querySelector('.annot8-canvas');
+      var canvasRect = canvas.getBoundingClientRect();
+      var rootRect = this.root.getBoundingClientRect();
+      this.canvas.offX = rootRect.left - canvasRect.left;
+      this.canvas.offY = rootRect.top - canvasRect.top;
+    }, 250),
+
     // draw is actually computing the drawRect
     draw() {
       this.annotations.forEach(a=> { this.drawAnnotation(a) });
@@ -389,15 +421,8 @@ export default {
       this.canvas.width = canvasRect.width;
       this.canvas.height = canvasRect.height;
 
-      // account for margins
-      try {
-        var marginTop = window.getComputedStyle(document.querySelector('html'))['margin-top'];
-        if (marginTop && false) {
-          marginTop = parseInt(marginTop)
-          this.canvas.top += marginTop;
-        }
-      } catch(e) {
-        //
+      if (this.canvas.offX == null || this.canvas.offY == null) {
+        this.accountForOffsets();
       }
 
       // check first element

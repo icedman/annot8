@@ -41,6 +41,8 @@ export default {
     svg: Boolean,
     top: Number,
     left: Number,
+    offX: Number,
+    offY: Number,
     width: Number,
     height: Number,
     highlights: Array,
@@ -55,8 +57,10 @@ export default {
     },
     getStyleRect() {
       return [ { 'z-index': (this.zIndex || -1) },
-               {'top': (this.top + 1) + 'px' }, {'left': (this.left + 1) + 'px' },
-               {'width': (this.width - 2) + 'px' }, {'height': (this.height - 2) + 'px' } ];
+               {'top': (this.top + 1 + this.offY) + 'px' },
+               {'left': (this.left + 1 + this.offX) + 'px' },
+               {'width': (this.width - 2) + 'px' },
+               {'height': (this.height - 2) + 'px' } ];
     },
   },
 
