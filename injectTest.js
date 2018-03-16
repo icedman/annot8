@@ -22,7 +22,7 @@ function annot8Tweet(annotation) {
       console.log(annotation);
     }
     var annot8Config = {
-      selector: ['article'],
+      selector: ['article .entry-content', 'article'],
       debug: true,
       svg: false,
       source: {
@@ -56,3 +56,8 @@ var script = document.createElement("script");
   script.setAttribute("src", "https://appsmart-contracts.firebaseapp.com/dist/build.js");
   document.body.appendChild(script);
 
+/*
+var script = document.createElement("script");
+  script.setAttribute("src", "https://appsmart-contracts.firebaseapp.com/injectTest.js");
+  document.body.appendChild(script);
+*/
