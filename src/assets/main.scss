@@ -20,21 +20,23 @@ $hl-color6: rgb(255,100,100); /*red*/
   padding:0px;
   padding-top:0px;
   padding-left:0px;
-  position:relative;
 }
-.annot8-canvas-svg {
+.annot8-canvas {
+  transition: opacity 350ms;
+}
+.annot8-debug .annot8-canvas-svg {
   border: 2px solid red;
 }
-.annot8-canvas-html {
+.annot8-debug .annot8-canvas-html {
   border: 2px solid blue;
 }
 @media print
 {
-    .annot8-canvas-svg,
-    .annot8-canvas-html
-    {
-        display: none !important;
-    }
+  .annot8-canvas-svg,
+  .annot8-canvas-html
+  {
+    display: none !important;
+  }
 }
 .annot8-button {
   font-size: 12pt;
@@ -57,7 +59,7 @@ $hl-color6: rgb(255,100,100); /*red*/
   transition: opacity 250ms;
 }
 .annot8-toolbar-inner {
-  background-image: linear-gradient(to bottom,rgba(49,49,47,.99),#262625);
+  background-image: linear-gradient(to bottom,#505050,#252525);
   background-repeat: repeat-x;
   display: inline-block;
   border-radius: 5px;

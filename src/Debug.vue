@@ -5,7 +5,7 @@
 
   <a class="annot8-button" v-if="a8.annotations.length == 0" @click="a8.loadSample()">Load Sample</a>
   <a class="annot8-button" v-if="a8.selection" @click="a8.annotate()">Annotate</a>
-  <a class="annot8-button" v-if="a8.selection" @click="a8.annotate({tag:'green'})">Green Tag</a>
+  <a class="annot8-button" v-if="a8.selection" @click="a8.annotate({tag:'tag2'})">Green Tag</a>
   <a class="annot8-button" v-if="a8.focus!=null" @click="a8.erase(a8.lastFocus)">Remove</a>
   <a class="annot8-button" v-if="a8.annotations.length" @click="a8.draw()">Redraw</a>
   <!-- <a class="annot8-button" @click="a8.toggleRenderer()">Toggle Renderer</a> -->
@@ -15,6 +15,8 @@
   <hr>
 
   Mobile: {{a8.isMobile}}<br>
+  Dialog: {{a8.showDialog}}<br>
+  Toolbar:{{a8.showToolbar}}<br>
   Focus: {{a8.focus}}<br>
   Quote: {{a8.selectionQuote}}<br>
   Range: {{a8.selectionRange}}<br>

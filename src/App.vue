@@ -1,5 +1,5 @@
 <template>
-  <div class="annot8-app">
+  <div class="annot8-app" :class="[debug?'annot8-debug':'']">
 
     <debugger v-if="debug" :a8="Me">
     </debugger>
@@ -13,6 +13,8 @@
       :active="focus"
       :left="canvas.left"
       :top="canvas.top"
+      :offX="canvas.offX"
+      :offY="canvas.offY"
       :width="canvas.width"
       :height="canvas.height"
       :highlights="highlights"
@@ -20,9 +22,12 @@
     </highlights-canvas>
 
     <div style="display:none">
-      <a target="_blank" id="annot8_twitter_link" href=""></a>
-      <a target="_blank" id="annot8_facebook_link" href=""></a>
+      <a target="_blank" id="annot8_twitter_link" href="" @click="openShareLink"></a>
+      <a target="_blank" id="annot8_facebook_link" href="" @click="openShareLink"></a>
     </div>
+
+    <modal-dialog :show="showDialog" @close="showModal = false" :a8="Me">
+    </modal-dialog>
 
     <icons/>
 
@@ -31,12 +36,13 @@
 
 <script>
 import EventSpy from './eventSpy.js';
-import _ from './libs.js';
+import { _ } from './libs.js';
 import { toRange, fromRange } from 'xpath-range';
 
 import Toolbar from './Toolbar.vue';
 import Highlights from './Highlights.vue';
 import Debug from './Debug.vue';
+import Dialog from './Dialog.vue';
 import Icons from './Icons.vue';
 
 export default {
@@ -45,7 +51,7 @@ export default {
   data () {
 
     return {
-      selector: 'article',
+      selector: [ 'article' ],
       svg: false,
       debug: false,
       zIndex: -1,
@@ -65,7 +71,9 @@ export default {
         top: 0,
         left: 0,
         width: 600,
-        height: 40
+        height: 40,
+        offX: null,
+        offY: null
       },
 
       selectionBounds: {
@@ -76,7 +84,8 @@ export default {
       },
 
       mobile: null,
-      currentToolbar: ''
+      currentToolbar: '',
+      showDialog: false
     }
   },
 
@@ -149,9 +158,11 @@ export default {
         return '';
       }
       if (this.selection && this.focus === null) {
+        this.showDialog = false;
         return this.currentToolbar || 'create';
       }
       if (this.selection === null && this.focus !== null) {
+        this.showDialog = false;
         return this.currentToolbar || 'edit';
       }
       return '';
@@ -159,52 +170,7 @@ export default {
   },
 
   mounted () {
-    // load config
-    this.selector = this.$config.selector;
-    this.svg = this.$config.svg;
-    this.debug = this.$config.debug;
-
-    this.root = document.querySelector(this.selector);
-    if (!this.root) {
-      this.root = document.querySelector('.' + this.selector);
-    }
-    if (!this.root) {
-      this.root = document.querySelector('#' + this.selector);
-    }
-    if (!this.root) {
-      return;
-    }
-
-    // re-parent the canvas
-    try {
-      // this.root.appendChild(this.$el);
-      this.root.insertBefore(this.$el, this.root.firstElementChild);
-    } catch(e) {
-      //
-    }
-
-    EventSpy.start(this.root,
-      /* selection callback */
-      (sel, range) => {
-        this.onSelectionChanged(sel, range);
-      },
-      /* resize callback */
-      () => {
-        this.onDocumentResized();
-      },
-      /* mouse callback */
-      (pos) => {
-        // this.log(pos);
-        this.onMouseUp(pos);
-      }
-    );
-
-    window.Annot8 = this;
-    setTimeout(() => {
-      this.draw();
-    }, 500);
-
-    this.onRead();
+    this.init();
   },
 
   destroyed () {
@@ -212,6 +178,68 @@ export default {
   },
 
   methods: {
+    init() {
+      // load config
+      this.selector = this.$config.selector;
+      this.svg = this.$config.svg;
+      this.debug = this.$config.debug;
+
+      // find selector
+      this.root = document.body;
+      for(var sel of this.selector) {
+        var elm = document.querySelector(sel);
+        if (elm) {
+          this.root = elm;
+          this.selector = sel;
+          break;
+        }
+      }
+
+      // re-parent the canvas
+      try {
+        this.root.appendChild(this.$el);
+      } catch(e) {
+      }
+
+      // get margin hint
+      for(var sheet of document.styleSheets) {
+        try {
+          for(var rule of sheet.rules) {
+            if (rule.selectorText.indexOf('html') != -1) {
+              if (rule.cssText.indexOf('!important') != -1) {
+                console.log(rule.cssText);
+              }
+            }
+          }
+        } catch(e) {
+          // skip errors
+        }
+      }
+
+      // run!
+      EventSpy.start(this.root,
+        /* selection callback */
+        (sel, range) => {
+          this.onSelectionChanged(sel, range);
+        },
+        /* resize callback */
+        () => {
+          this.onDocumentResized();
+        },
+        /* mouse callback */
+        (pos) => {
+          // this.log(pos);
+          this.onMouseUp(pos);
+        }
+      );
+
+      window.Annot8 = this;
+      setTimeout(() => {
+        this.draw();
+      }, 500);
+
+      this.onRead();
+    },
 
     calculateSelectionBounds: _.debounce(function(range) {
       if (range == null)
@@ -266,6 +294,7 @@ export default {
     },
 
     onSelectionChanged: _.debounce(function(sel, range) {
+      // this.log('onSelectionChanged');
       this.selection = sel;
       this.range = range ? fromRange(range, this.root) : null;
       this.selectionBounds.ready = false;
@@ -276,20 +305,25 @@ export default {
     }, 50),
 
     onDocumentResized: _.debounce(function() {
+      // this.log('onDocumentResized');
       this.draw();
     }, 150),
 
     onMouseUp: _.debounce(function(pos) {
+      // this.log('onMouseUp');
       this.focus = null;
       var pad = 2;
-
       // make relative
       pos.x = pos.x - window.scrollX;
       pos.y = pos.y - window.scrollY;
 
       // get hit highlight
       var rects = [];
+      var timeoutId;
       document.querySelectorAll('.annot8-hl').forEach( n=> {
+        // if (this.focus != null)
+        //   return;
+
         var h = n.getClientRects()[0];
         h.x = h.x || h.left;
         h.y = h.y || h.top;
@@ -306,33 +340,45 @@ export default {
         }
 
         if (this.focus >=0) {
-          setTimeout(() => {
-            this.calculateBoundsFromRects(rects);
+          if (timeoutId != null) {
+            clearTimeout(timeoutId);
+          }
+          timeoutId = setTimeout(() => {
+            var rect = this.calculateBoundsFromRects(rects);
+            this.selectionBounds = rect;
+            this.selectionBounds.ready = true;
           }, 250);
         }
       });
-    }, 150),
+    }, 50),
 
-    loadSample() {
-      const data = [
-        {
-          quote: 'Ipsum has been the industry’s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but a',
-          range: '{ "start": "/p[2]/text()[2]", "end": "/p[2]/text()[2]", "startOffset": 70, "endOffset": 281 }',
-        }
-      ];
+    loadData(annotations) {
+      this.annotations = [];
 
-      this.annotations = [ ...data ];
+      annotations.forEach(a=> {
+        this.annotations.push(Object.assign({},a));
+      });
+
       this.draw();
       this.clearSelection();
     },
 
     _createAnnotation() {
-      this.annotations.push({
+      var annotation = {
           quote: this.selection.toString(),
           range: JSON.stringify(this.range),
           rects: [],
           tag: this.tag
-        });
+        };
+      this.annotations.push(annotation);
+      this.onCreate(annotation);
+
+      // select latest highlight
+      setTimeout(() => {
+        this.focus = this.annotations.length-1;
+        this.lastFocus = this.focus;
+        this.selectionBounds.ready = true;
+      }, 250);
     },
 
     _updateAnnotation(id) {
@@ -340,6 +386,7 @@ export default {
       if (annotation) {
         annotation.tag = this.tag;
       }
+      this.onUpdate(annotation);
     },
 
     annotate(params) {
@@ -359,10 +406,12 @@ export default {
 
     erase(idx) {
       try {
+        var annotation = this.annotations[idx];
         this.annotations.splice(idx,1);
         this.draw();
         this.clearSelection();
         this.lastFocus = null;
+        this.onDelete(annotation);
       } catch(e) {
 
       }
@@ -379,6 +428,14 @@ export default {
       }
     },
 
+    accountForOffsets: _.debounce(function() {
+      var canvas = document.querySelector('.annot8-canvas');
+      var canvasRect = canvas.getBoundingClientRect();
+      var rootRect = this.root.getBoundingClientRect();
+      this.canvas.offX = rootRect.left - canvasRect.left;
+      this.canvas.offY = rootRect.top - canvasRect.top;
+    }, 250),
+
     // draw is actually computing the drawRect
     draw() {
       this.annotations.forEach(a=> { this.drawAnnotation(a) });
@@ -387,24 +444,11 @@ export default {
       var canvasRect = this.root.getBoundingClientRect();
       this.canvas.top = this.root.offsetTop;
       this.canvas.left = this.root.offsetLeft;
-      // this.canvas.top = 0;//this.canvas.top || this.canvas.y;
-      // this.canvas.left = 0;//this.canvas.left || this.canvas.x;
       this.canvas.width = canvasRect.width;
       this.canvas.height = canvasRect.height;
 
-      // this.canvas = this.calculateBoundsFromRects(this.root.getClientRects());
-      // this.canvas.left = this.canvas.left || this.canvas.x;
-      // this.canvas.top = this.canvas.top || this.canvas.y;
-
-      // account for margins
-      try {
-        var marginTop = window.getComputedStyle(document.querySelector('html'))['margin-top'];
-        if (marginTop && false) {
-          marginTop = parseInt(marginTop)
-          this.canvas.top += marginTop;
-        }
-      } catch(e) {
-        //
+      if (this.canvas.offX == null || this.canvas.offY == null) {
+        this.accountForOffsets();
       }
 
       // check first element
@@ -503,26 +547,65 @@ export default {
       this.errors.push(error);
     },
 
-    onRead: _.debounce(function() {
+    onRead() {
       var source = this.$config.source;
-      var url = `${source.baseUrl}${source.read}`;
-      this.$http({method:'get',url:url})
-      .then((data)=>{
-        console.log(data);
-        this.loadSample();
-      })
-      .catch(err=>{
-        console.log(err);
-      })
-    }, 50),
+      if (typeof(source.read) == 'function') {
+        source.read(this.$http)
+        .then((data) => {
+          this.loadData(data);
+        })
+        .catch((err) => {
+          this.log(err);
+        });
+        return;
+      }
+    },
 
     onCreate(annotation) {
+      var source = this.$config.source;
+      if (typeof(source.create) == 'function') {
+        source.create(this.$http, this.annotations, annotation)
+        .then((data) => {
+          // this.loadData(data);
+        })
+        .catch((err) => {
+          this.log(err);
+        });
+        return;
+      }
     },
 
     onUpdate(annotation) {
+      var source = this.$config.source;
+      if (typeof(source.update) == 'function') {
+        source.update(this.$http, this.annotations, annotation)
+        .then((data) => {
+          // this.loadData(data);
+        })
+        .catch((err) => {
+          this.log(err);
+        });
+        return;
+      }
     },
 
     onDelete(annotation) {
+      var source = this.$config.source;
+      if (typeof(source.delete) == 'function') {
+        source.delete(this.$http, this.annotations, annotation)
+        .then((data) => {
+          // this.loadData(data);
+        })
+        .catch((err) => {
+          this.log(err);
+        });
+      }
+    },
+
+    openShareLink(event) {
+      event.preventDefault();
+      window.open(event.srcElement.href, '', 
+        'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=300,width=600');
     }
   },
 
@@ -530,6 +613,7 @@ export default {
     'toolbar': Toolbar,
     'highlights-canvas': Highlights,
     'debugger': Debug,
+    'modal-dialog': Dialog,
     'icons': Icons
   }
 }

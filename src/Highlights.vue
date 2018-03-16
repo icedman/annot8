@@ -41,6 +41,8 @@ export default {
     svg: Boolean,
     top: Number,
     left: Number,
+    offX: Number,
+    offY: Number,
     width: Number,
     height: Number,
     highlights: Array,
@@ -54,9 +56,12 @@ export default {
       return [ { 'z-index': (this.zIndex || -1) }, { 'top': (this.top + 1) + 'px' }, {'left': (this.left + 1) + 'px' } ];
     },
     getStyleRect() {
-      return [ { 'z-index': (this.zIndex || -1) },
-               {'top': (this.top + 1) + 'px' }, {'left': (this.left + 1) + 'px' },
-               {'width': (this.width - 2) + 'px' }, {'height': (this.height - 2) + 'px' } ];
+      return [ {'opacity': this.offX == null ? 0 : 1 },
+               {'z-index': (this.zIndex || -1) },
+               {'top': (this.top + 1 + this.offY) + 'px' },
+               {'left': (this.left + 1 + this.offX) + 'px' },
+               {'width': (this.width - 2) + 'px' },
+               {'height': (this.height - 2) + 'px' } ];
     },
   },
 
@@ -68,16 +73,11 @@ export default {
   },
 
   mounted() {
-    try {
-      // document.body.appendChild(this.$el);
-    } catch(e) {
+    // try {
+      // document.body.appendChild(this.$parent.root);
+    // } catch(e) {
       // console.log(e);
-    }
+    // }
   }
 }
 </script>
-
-<style>
-.annot8-canvas-container {
-}
-</style>
