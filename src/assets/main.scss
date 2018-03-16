@@ -20,7 +20,6 @@ $hl-color6: rgb(255,100,100); /*red*/
   padding:0px;
   padding-top:0px;
   padding-left:0px;
-  position:relative;
 }
 .annot8-canvas-svg {
   border: 2px solid red;
@@ -30,11 +29,11 @@ $hl-color6: rgb(255,100,100); /*red*/
 }
 @media print
 {
-    .annot8-canvas-svg,
-    .annot8-canvas-html
-    {
-        display: none !important;
-    }
+  .annot8-canvas-svg,
+  .annot8-canvas-html
+  {
+    display: none !important;
+  }
 }
 .annot8-button {
   font-size: 12pt;

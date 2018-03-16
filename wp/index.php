@@ -48,6 +48,7 @@ function annot8Comment(annotation) {
   console.log(annotation);
 }
 var annot8Config = {
+  selector: ['article .entry-content', '.entry-content'],
   debug: false,
   svg: false,
   source: {

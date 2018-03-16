@@ -15,6 +15,7 @@
   <hr>
 
   Mobile: {{a8.isMobile}}<br>
+  Toolbar:{{a8.showToolbar}}<br>
   Focus: {{a8.focus}}<br>
   Quote: {{a8.selectionQuote}}<br>
   Range: {{a8.selectionRange}}<br>

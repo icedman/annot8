@@ -160,26 +160,24 @@ export default {
 
   mounted () {
     // load config
-    this.selector = this.$config.selector;
+    this.selector = this.$config.selector || [ 'article' ];
     this.svg = this.$config.svg;
     this.debug = this.$config.debug;
 
-    this.root = document.querySelector(this.selector);
-    if (!this.root) {
-      this.root = document.querySelector('.' + this.selector);
-    }
-    if (!this.root) {
-      this.root = document.querySelector('#' + this.selector);
-    }
-    if (!this.root) {
-      return;
+    this.root = document.body;
+    for(var sel of this.selector) {
+      var elm = document.querySelector(sel);
+      if (elm) {
+        this.root = elm;
+        this.selector = sel;
+        break;
+      }
     }
 
     // re-parent the canvas
     try {
       this.root.appendChild(this.$el);
     } catch(e) {
-      //
     }
 
     EventSpy.start(this.root,
@@ -306,7 +304,9 @@ export default {
 
         if (this.focus >=0) {
           setTimeout(() => {
-            this.calculateBoundsFromRects(rects);
+            var rect = this.calculateBoundsFromRects(rects);
+            this.selectionBounds = rect;
+            this.selectionBounds.ready = true;
           }, 250);
         }
       });
@@ -386,14 +386,8 @@ export default {
       var canvasRect = this.root.getBoundingClientRect();
       this.canvas.top = this.root.offsetTop;
       this.canvas.left = this.root.offsetLeft;
-      // this.canvas.top = 0;//this.canvas.top || this.canvas.y;
-      // this.canvas.left = 0;//this.canvas.left || this.canvas.x;
       this.canvas.width = canvasRect.width;
       this.canvas.height = canvasRect.height;
-
-      // this.canvas = this.calculateBoundsFromRects(this.root.getClientRects());
-      // this.canvas.left = this.canvas.left || this.canvas.x;
-      // this.canvas.top = this.canvas.top || this.canvas.y;
 
       // account for margins
       try {
@@ -507,7 +501,7 @@ export default {
       var url = `${source.baseUrl}${source.read}`;
       this.$http({method:'get',url:url})
       .then((data)=>{
-        console.log(data);
+        // console.log(data);
         this.loadSample();
       })
       .catch(err=>{
