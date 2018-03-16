@@ -31,7 +31,7 @@
 
 <script>
 import EventSpy from './eventSpy.js';
-import _ from './libs.js';
+import { _ } from './libs.js';
 import { toRange, fromRange } from 'xpath-range';
 
 import Toolbar from './Toolbar.vue';
@@ -177,8 +177,7 @@ export default {
 
     // re-parent the canvas
     try {
-      // this.root.appendChild(this.$el);
-      this.root.insertBefore(this.$el, this.root.firstElementChild);
+      this.root.appendChild(this.$el);
     } catch(e) {
       //
     }

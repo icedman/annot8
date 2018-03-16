@@ -68,16 +68,11 @@ export default {
   },
 
   mounted() {
-    try {
-      // document.body.appendChild(this.$el);
-    } catch(e) {
+    // try {
+      // document.body.appendChild(this.$parent.root);
+    // } catch(e) {
       // console.log(e);
-    }
+    // }
   }
 }
 </script>
-
-<style>
-.annot8-canvas-container {
-}
-</style>

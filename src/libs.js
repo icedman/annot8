@@ -1,4 +1,4 @@
-export default { debounce: function(func, wait) {
+export var _ = { debounce: function(func, wait) {
   let timeout
   return function(...args) {
     const context = this
