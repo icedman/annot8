@@ -13,6 +13,7 @@
   "dependencies": {
     "axios": "^0.18.0",
     "vue": "^2.5.11",
+    "vue-utopia-dialog": "0.0.11",
     "xpath-range": "^1.1.1"
   },
   "browserslist": [

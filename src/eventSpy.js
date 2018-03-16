@@ -10,6 +10,8 @@ var isRunning = false;
 
 function isElementWithin(elm) {
   while(elm) {
+    if (elm.className == 'annot8-toolbar')
+      return false;
     if (elm === rootElement) {
       return true;
     }
@@ -55,13 +57,16 @@ function onSelectionChange(evt) {
 }
 
 function onDocumentResize() {
+  if (!isRunning)
+    return;
   documentResizeCallback();
 }
 
 function onMouseUp(evt) {
-  if (selection) {
+  if (!isRunning)
     return;
-  }
+  if (selection)
+    return;
   // check within
   if (isElementWithin(evt.srcElement)) {
     mouseUpCallback({x:evt.pageX, y:evt.pageY, sx:evt.screenX, sy:evt.screenY});
@@ -69,9 +74,10 @@ function onMouseUp(evt) {
 }
 
 function onTouchStart(evt) {
-  if (selection) {
+  if (!isRunning)
     return;
-  }
+  if (selection)
+    return;
   // check within
   if (isElementWithin(evt.srcElement)) {
     var touch = evt.changedTouches[0];
@@ -104,6 +110,14 @@ function start(element, callback1, callback2, callback3) {
   document.body.addEventListener('touchend', onTouchStart);
 }
 
+function pause() {
+  isRunning = false;
+}
+
+function resume() {
+  isRunning = true;
+}
+
 function stop() {
   if (!isRunning) {
     return;
@@ -120,5 +134,7 @@ function stop() {
 
 export default {
   start: start,
-  stop: stop
+  stop: stop,
+  pause: pause,
+  resume: resume
 };

@@ -6,7 +6,7 @@
     <div class="annot8-toolbar-button"
       :class="'annot8-'+btn.action"
       :data-tag="getButtonDataTag(btn)"
-      @click="clickButton(btn)" v-for="btn in toolbarButtons">
+      @click="clickButton($event,btn)" v-for="btn in toolbarButtons">
       <span class="annot8-toolbar-icon" v-html="btn.icon"></span>
     </div>
 
@@ -16,6 +16,7 @@
 </template>
 
 <script>
+import EventSpy from './eventSpy.js';
 import { _ } from './libs.js';
 
 export default {
@@ -99,6 +100,7 @@ export default {
       }
       return btn.tag;
     },
+
     createButtons() {
       // create the buttons
       if (this.$config.buttons) {
@@ -112,7 +114,7 @@ export default {
       this.computeToolbarSize();
     },
 
-    clickButton(btn) {
+    clickButton(event,btn) {
       var params = {
         id:this.a8.lastFocus,
         tag:btn.tag || this.a8.currentTag
@@ -134,11 +136,12 @@ export default {
           break;
         }
         case 'tags': {
-          if (this.a8.currentToolbar == 'tags') {
-            this.a8.currentToolbar = '';
-          } else {
-            this.a8.currentToolbar = 'tags';
-          }
+          this.a8.currentToolbar = 'tags';
+          break;
+        }
+        case 'comment': {
+          this.a8.showDialog = true; 
+          this.a8.currentToolbar = '';
           break;
         }
       }

@@ -1,5 +1,5 @@
 <template>
-  <div class="annot8-app">
+  <div class="annot8-app" :class="[debug?'annot8-debug':'']">
 
     <debugger v-if="debug" :a8="Me">
     </debugger>
@@ -22,9 +22,12 @@
     </highlights-canvas>
 
     <div style="display:none">
-      <a target="_blank" id="annot8_twitter_link" href=""></a>
-      <a target="_blank" id="annot8_facebook_link" href=""></a>
+      <a target="_blank" id="annot8_twitter_link" href="" @click="openShareLink"></a>
+      <a target="_blank" id="annot8_facebook_link" href="" @click="openShareLink"></a>
     </div>
+
+    <modal-dialog :show="showDialog" @close="showModal = false" :a8="Me">
+    </modal-dialog>
 
     <icons/>
 
@@ -39,6 +42,7 @@ import { toRange, fromRange } from 'xpath-range';
 import Toolbar from './Toolbar.vue';
 import Highlights from './Highlights.vue';
 import Debug from './Debug.vue';
+import Dialog from './Dialog.vue';
 import Icons from './Icons.vue';
 
 export default {
@@ -80,7 +84,8 @@ export default {
       },
 
       mobile: null,
-      currentToolbar: ''
+      currentToolbar: '',
+      showDialog: false
     }
   },
 
@@ -153,9 +158,11 @@ export default {
         return '';
       }
       if (this.selection && this.focus === null) {
+        this.showDialog = false;
         return this.currentToolbar || 'create';
       }
       if (this.selection === null && this.focus !== null) {
+        this.showDialog = false;
         return this.currentToolbar || 'edit';
       }
       return '';
@@ -287,6 +294,7 @@ export default {
     },
 
     onSelectionChanged: _.debounce(function(sel, range) {
+      // this.log('onSelectionChanged');
       this.selection = sel;
       this.range = range ? fromRange(range, this.root) : null;
       this.selectionBounds.ready = false;
@@ -297,20 +305,25 @@ export default {
     }, 50),
 
     onDocumentResized: _.debounce(function() {
+      // this.log('onDocumentResized');
       this.draw();
     }, 150),
 
     onMouseUp: _.debounce(function(pos) {
+      // this.log('onMouseUp');
       this.focus = null;
       var pad = 2;
-
       // make relative
       pos.x = pos.x - window.scrollX;
       pos.y = pos.y - window.scrollY;
 
       // get hit highlight
       var rects = [];
+      var timeoutId;
       document.querySelectorAll('.annot8-hl').forEach( n=> {
+        // if (this.focus != null)
+        //   return;
+
         var h = n.getClientRects()[0];
         h.x = h.x || h.left;
         h.y = h.y || h.top;
@@ -327,35 +340,45 @@ export default {
         }
 
         if (this.focus >=0) {
-          setTimeout(() => {
+          if (timeoutId != null) {
+            clearTimeout(timeoutId);
+          }
+          timeoutId = setTimeout(() => {
             var rect = this.calculateBoundsFromRects(rects);
             this.selectionBounds = rect;
             this.selectionBounds.ready = true;
           }, 250);
         }
       });
-    }, 150),
+    }, 50),
 
-    loadSample() {
-      const data = [
-        {
-          quote: 'Ipsum has been the industry’s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but a',
-          range: '{ "start": "/p[2]/text()[2]", "end": "/p[2]/text()[2]", "startOffset": 70, "endOffset": 281 }',
-        }
-      ];
+    loadData(annotations) {
+      this.annotations = [];
 
-      this.annotations = [ ...data ];
+      annotations.forEach(a=> {
+        this.annotations.push(Object.assign({},a));
+      });
+
       this.draw();
       this.clearSelection();
     },
 
     _createAnnotation() {
-      this.annotations.push({
+      var annotation = {
           quote: this.selection.toString(),
           range: JSON.stringify(this.range),
           rects: [],
           tag: this.tag
-        });
+        };
+      this.annotations.push(annotation);
+      this.onCreate(annotation);
+
+      // select latest highlight
+      setTimeout(() => {
+        this.focus = this.annotations.length-1;
+        this.lastFocus = this.focus;
+        this.selectionBounds.ready = true;
+      }, 250);
     },
 
     _updateAnnotation(id) {
@@ -363,6 +386,7 @@ export default {
       if (annotation) {
         annotation.tag = this.tag;
       }
+      this.onUpdate(annotation);
     },
 
     annotate(params) {
@@ -382,10 +406,12 @@ export default {
 
     erase(idx) {
       try {
+        var annotation = this.annotations[idx];
         this.annotations.splice(idx,1);
         this.draw();
         this.clearSelection();
         this.lastFocus = null;
+        this.onDelete(annotation);
       } catch(e) {
 
       }
@@ -521,26 +547,65 @@ export default {
       this.errors.push(error);
     },
 
-    onRead: _.debounce(function() {
+    onRead() {
       var source = this.$config.source;
-      var url = `${source.baseUrl}${source.read}`;
-      this.$http({method:'get',url:url})
-      .then((data)=>{
-        // console.log(data);
-        this.loadSample();
-      })
-      .catch(err=>{
-        console.log(err);
-      })
-    }, 50),
+      if (typeof(source.read) == 'function') {
+        source.read(this.$http)
+        .then((data) => {
+          this.loadData(data);
+        })
+        .catch((err) => {
+          this.log(err);
+        });
+        return;
+      }
+    },
 
     onCreate(annotation) {
+      var source = this.$config.source;
+      if (typeof(source.create) == 'function') {
+        source.create(this.$http, this.annotations, annotation)
+        .then((data) => {
+          // this.loadData(data);
+        })
+        .catch((err) => {
+          this.log(err);
+        });
+        return;
+      }
     },
 
     onUpdate(annotation) {
+      var source = this.$config.source;
+      if (typeof(source.update) == 'function') {
+        source.update(this.$http, this.annotations, annotation)
+        .then((data) => {
+          // this.loadData(data);
+        })
+        .catch((err) => {
+          this.log(err);
+        });
+        return;
+      }
     },
 
     onDelete(annotation) {
+      var source = this.$config.source;
+      if (typeof(source.delete) == 'function') {
+        source.delete(this.$http, this.annotations, annotation)
+        .then((data) => {
+          // this.loadData(data);
+        })
+        .catch((err) => {
+          this.log(err);
+        });
+      }
+    },
+
+    openShareLink(event) {
+      event.preventDefault();
+      window.open(event.srcElement.href, '', 
+        'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=300,width=600');
     }
   },
 
@@ -548,6 +613,7 @@ export default {
     'toolbar': Toolbar,
     'highlights-canvas': Highlights,
     'debugger': Debug,
+    'modal-dialog': Dialog,
     'icons': Icons
   }
 }

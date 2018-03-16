@@ -21,16 +21,44 @@ function annot8Tweet(annotation) {
     function annot8Comment(annotation) {
       console.log(annotation);
     }
+
+    // local storage
+    var currentAnnotationId = 0;
+    function annot8Create(http, annotations, annotation) {
+      if (currentAnnotationId < annotations.length) {
+        currentAnnotationId = annotations.length;
+      }
+      currentAnnotationId++;
+      var id = 'a8-' + currentAnnotationId;
+      annotation.id = currentAnnotationId;
+      localStorage.setItem('a8-' + annot8Config.docid, JSON.stringify(annotations));
+      return Promise.resolve();
+    }
+    function annot8Read(http) {
+      var obj = JSON.parse(localStorage.getItem('a8-' + annot8Config.docid));
+      return Promise.resolve(obj);
+    }
+    function annot8Update(http, annotations, annotation) {
+      console.log(annotations);
+      localStorage.setItem('a8-' + annot8Config.docid, JSON.stringify(annotations));
+      return Promise.resolve();
+    }
+    function annot8Delete(http, annotations, annotation) {
+      localStorage.setItem('a8-' + annot8Config.docid, JSON.stringify(annotations));
+      return Promise.resolve();
+    }
+
     var annot8Config = {
-      selector: ['article .entry-content', 'article'],
+      docid: window.location.href,
+      selector: ['article'],
       debug: true,
       svg: false,
       source: {
         baseUrl: window.location.origin,
-        create: '',
-        read: '',
-        update: '',
-        delete: '',
+        create: annot8Create,
+        read:   annot8Read,
+        update: annot8Update,
+        delete: annot8Delete,
       },
       buttons: [
         { action:'annotate',  title:'Highlight', icon:'#si-entypo-brush',     tool: 'create' },

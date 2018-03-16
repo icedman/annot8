@@ -56,7 +56,8 @@ export default {
       return [ { 'z-index': (this.zIndex || -1) }, { 'top': (this.top + 1) + 'px' }, {'left': (this.left + 1) + 'px' } ];
     },
     getStyleRect() {
-      return [ { 'z-index': (this.zIndex || -1) },
+      return [ {'opacity': this.offX == null ? 0 : 1 },
+               {'z-index': (this.zIndex || -1) },
                {'top': (this.top + 1 + this.offY) + 'px' },
                {'left': (this.left + 1 + this.offX) + 'px' },
                {'width': (this.width - 2) + 'px' },
