@@ -9,18 +9,18 @@ Author URI: http://lawyerly.ph
 
 function annot8_init() {
     wp_register_script( 'annot8-main', plugins_url( '/annot8/dist/build.js', __FILE__ ));
-    wp_register_style( 'annot8-css', plugins_url( '/annot8.css', __FILE__ ) );
+    // wp_register_style( 'annot8-css', plugins_url( '/annot8.css', __FILE__ ) );
 }
 
 function annot8_enqueue_scripts()
 {
     // wp_enqueue_script( 'annot8-main' );
-    wp_enqueue_style( 'annot8-css' );
+    // wp_enqueue_style( 'annot8-css' );
 }
 
 function annot8_print_scripts() {
 
-?>   
+?>
 <div id="annot8-app"></div>
 
 <script>
@@ -62,7 +62,6 @@ var annot8Config = {
     { action:'tags',      title:'Tag', icon:'#si-awesome-tags',   tool: 'create' },
 
     { action:'tags',      title:'Tag', icon:'#si-awesome-tags',   tool: 'tags' },
-    { action:'annotate',  title:'Tag', icon:'#si-awesome-tag',    tool: 'tags', tag: '' },
     { action:'annotate',  title:'Tag', icon:'#si-awesome-tag',    tool: 'tags', tag: 'tag1' },
     { action:'annotate',  title:'Tag', icon:'#si-awesome-tag',    tool: 'tags', tag: 'tag2' },
     { action:'annotate',  title:'Tag', icon:'#si-awesome-tag',    tool: 'tags', tag: 'tag3' },
@@ -78,8 +77,8 @@ var annot8Config = {
   ]
 };
 </script>
-
 <?php
+    require_once('twitter.html');
     wp_print_scripts('annot8-main');
 }
 

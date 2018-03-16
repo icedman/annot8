@@ -23,14 +23,15 @@
       <a target="_blank" id="annot8_twitter_link" href=""></a>
       <a target="_blank" id="annot8_facebook_link" href=""></a>
     </div>
+
     <icons/>
-    
+
   </div>
 </template>
 
 <script>
 import EventSpy from './eventSpy.js';
-import _ from 'lodash';
+import _ from './libs.js';
 import { toRange, fromRange } from 'xpath-range';
 
 import Toolbar from './Toolbar.vue';
@@ -96,6 +97,10 @@ export default {
     },
 
     currentTag() {
+      var annotation = this.annotations[this.lastFocus];
+      if (annotation) {
+        return annotation.tag;
+      }
       return this.tag;
     },
 
@@ -172,7 +177,8 @@ export default {
 
     // re-parent the canvas
     try {
-      this.root.appendChild(this.$el);
+      // this.root.appendChild(this.$el);
+      this.root.insertBefore(this.$el, this.root.firstElementChild);
     } catch(e) {
       //
     }
@@ -217,11 +223,13 @@ export default {
       }
 
       try {
-        this.calculateBoundsFromRects(range.getClientRects());
+        var rect = this.calculateBoundsFromRects(range.getClientRects());
+        this.selectionBounds = rect;
+        this.selectionBounds.ready = true;
       } catch(e) {
         this.log(e);
       }
-    }, 550),
+    }, 450),
 
     calculateBoundsFromRects: function(rects) {
       var rect = {};
@@ -254,8 +262,7 @@ export default {
       rect.x = rect.x + window.scrollX;
       rect.y = rect.y + window.scrollY;
 
-      this.selectionBounds = rect;
-      this.selectionBounds.ready = true;
+      return rect;
     },
 
     onSelectionChanged: _.debounce(function(sel, range) {
@@ -301,7 +308,7 @@ export default {
         if (this.focus >=0) {
           setTimeout(() => {
             this.calculateBoundsFromRects(rects);
-          }, 500);
+          }, 250);
         }
       });
     }, 150),
@@ -380,8 +387,14 @@ export default {
       var canvasRect = this.root.getBoundingClientRect();
       this.canvas.top = this.root.offsetTop;
       this.canvas.left = this.root.offsetLeft;
+      // this.canvas.top = 0;//this.canvas.top || this.canvas.y;
+      // this.canvas.left = 0;//this.canvas.left || this.canvas.x;
       this.canvas.width = canvasRect.width;
       this.canvas.height = canvasRect.height;
+
+      // this.canvas = this.calculateBoundsFromRects(this.root.getClientRects());
+      // this.canvas.left = this.canvas.left || this.canvas.x;
+      // this.canvas.top = this.canvas.top || this.canvas.y;
 
       // account for margins
       try {

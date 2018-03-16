@@ -65,6 +65,14 @@ export default {
       return [ (h.idx==this.active ? 'annot8-active' : null),
                (h.tag && h.tag!='' ? 'annot8-hl-' + h.tag : null) ];
     },
+  },
+
+  mounted() {
+    try {
+      // document.body.appendChild(this.$el);
+    } catch(e) {
+      // console.log(e);
+    }
   }
 }
 </script>

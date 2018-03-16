@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import _ from 'lodash';
+import _ from './libs.js';
 
 export default {
   data() { return {
