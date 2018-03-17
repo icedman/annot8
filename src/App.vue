@@ -26,9 +26,6 @@
       <a target="_blank" id="annot8_facebook_link" href="" @click="openShareLink"></a>
     </div>
 
-    <modal-dialog :show="showDialog" @close="showModal = false" :a8="Me">
-    </modal-dialog>
-
     <icons/>
 
   </div>
@@ -42,7 +39,6 @@ import { toRange, fromRange } from 'xpath-range';
 import Toolbar from './Toolbar.vue';
 import Highlights from './Highlights.vue';
 import Debug from './Debug.vue';
-import Dialog from './Dialog.vue';
 import Icons from './Icons.vue';
 
 export default {
@@ -84,8 +80,7 @@ export default {
       },
 
       mobile: null,
-      currentToolbar: '',
-      showDialog: false
+      currentToolbar: ''
     }
   },
 
@@ -158,11 +153,9 @@ export default {
         return '';
       }
       if (this.selection && this.focus === null) {
-        this.showDialog = false;
         return this.currentToolbar || 'create';
       }
       if (this.selection === null && this.focus !== null) {
-        this.showDialog = false;
         return this.currentToolbar || 'edit';
       }
       return '';
@@ -236,7 +229,7 @@ export default {
       window.Annot8 = this;
       setTimeout(() => {
         this.draw();
-      }, 500);
+      }, 50);
 
       this.onRead();
     },
@@ -257,7 +250,7 @@ export default {
       } catch(e) {
         this.log(e);
       }
-    }, 450),
+    }, 250),
 
     calculateBoundsFromRects: function(rects) {
       var rect = {};
@@ -294,7 +287,7 @@ export default {
     },
 
     onSelectionChanged: _.debounce(function(sel, range) {
-      // this.log('onSelectionChanged');
+      this.log('onSelectionChanged');
       this.selection = sel;
       this.range = range ? fromRange(range, this.root) : null;
       this.selectionBounds.ready = false;
@@ -302,15 +295,15 @@ export default {
       if (range) {
         this.focus = null;
       }
-    }, 50),
+    }, 150),
 
     onDocumentResized: _.debounce(function() {
-      // this.log('onDocumentResized');
+      this.log('onDocumentResized');
       this.draw();
     }, 150),
 
     onMouseUp: _.debounce(function(pos) {
-      // this.log('onMouseUp');
+      this.log('onMouseUp');
       this.focus = null;
       var pad = 2;
       // make relative
@@ -604,7 +597,7 @@ export default {
 
     openShareLink(event) {
       event.preventDefault();
-      window.open(event.srcElement.href, '', 
+      window.open(event.srcElement.href, '',
         'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=300,width=600');
     }
   },
@@ -613,7 +606,6 @@ export default {
     'toolbar': Toolbar,
     'highlights-canvas': Highlights,
     'debugger': Debug,
-    'modal-dialog': Dialog,
     'icons': Icons
   }
 }

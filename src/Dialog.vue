@@ -1,18 +1,11 @@
 <template>
-  <div class="modal-mask" @click="close" v-show="show">
-        <div class="modal-container" @click.stop>
-            
-<div class="modal-body">
-<label class="form-label">
-    Title
-    <input v-model="title" class="form-control">
-</label>
-<label class="form-label">
-    Body
-    <textarea v-model="this.a8.currentAnnotation.quote" rows="5" 
-      style="min-width:240px;max-width:240px" class="form-control">
-    </textarea>
-</label>
+  <div v-show="show">
+        <div class="annot8-modal-container">
+
+<div class="annot8-modal-body">
+<textarea xxxv-model="this.a8.currentAnnotation.quote" rows="5"
+  style="min-width:298px;max-width:298px" class="form-control">
+</textarea>
 </div>
 
         </div>
@@ -28,42 +21,18 @@ export default {
 
   data: function () {
     return {
-      title: '',
-      body: ''
     };
   },
   methods: {
-    // ...
-    close: function () {
-      this.$emit('close');
-      this.title = '';
-      this.body = '';
-    },
   },
-  // ...
 }
 </script>
 
 <style scoped>
-* {
-    box-sizing: border-box;
-}
-
-.modal-mask {
-    position: fixed;
-    z-index: 9998;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    --background-color: rgba(0, 0, 0, .5);
-    --transition: opacity .3s ease;
-}
-
-.modal-container {
+.annot8-modal-container {
     width: 300px;
-    margin: 40px auto 0;
-    padding: 20px 30px;
+    padding: 8px;
+    margin: 0px;
     background-color: #fff;
     border-radius: 2px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, .33);
@@ -71,56 +40,17 @@ export default {
     font-family: Helvetica, Arial, sans-serif;
 }
 
-.modal-header h3 {
+.annot8-modal-header h3 {
     margin-top: 0;
     color: #42b983;
 }
 
-.modal-body {
-    margin: 20px 0;
+.annot8-modal-body {
+    margin: 0px 0;
 }
 
-.text-right {
-    text-align: right;
-}
-
-.form-label {
-    display: block;
-    margin-bottom: 1em;
-}
-
-.form-label > .form-control {
-    margin-top: 0.5em;
-}
-
-.form-control {
-    display: block;
-    width: 100%;
-    padding: 0.5em 1em;
-    line-height: 1.5;
-    border: 1px solid #ddd;
-}
-
-/*
- * The following styles are auto-applied to elements with
- * transition="modal" when their visibility is toggled
- * by Vue.js.
- *
- * You can easily play with the modal transition by editing
- * these styles.
- */
-
-.modal-enter {
-  opacity: 0;
-}
-
-.modal-leave-active {
-  opacity: 0;
-}
-
-.modal-enter .modal-container,
-.modal-leave-active .modal-container {
-  -webkit-transform: scale(1.1);
-  transform: scale(1.1);
+textarea.form-control {
+  padding:0px;
+  border: 0px;
 }
 </style>
