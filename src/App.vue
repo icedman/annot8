@@ -1,11 +1,11 @@
 <template>
   <div class="annot8-app" :class="[debug?'annot8-debug':'']">
-    <debugger v-if="debug" :a8="Me">
+    <debugger v-if="debug">
     </debugger>
 
     <icons/>
 
-    <toolbar :a8="Me">
+    <toolbar>
     </toolbar>
 
     <highlights-canvas
@@ -18,8 +18,7 @@
       :offY="canvas.offY"
       :width="canvas.width"
       :height="canvas.height"
-      :highlights="highlights"
-      :a8="Me">
+      :highlights="highlights">
     </highlights-canvas>
 
     <div style="display:none">
@@ -27,7 +26,7 @@
       <a target="_blank" id="annot8_facebook_link" href="" @click="openShareLink"></a>
     </div>
 
-    <modal-dialog :show="showDialog" @close="showModal = false" :a8="Me">
+    <modal-dialog :show="showDialog" @close="showModal = false">
     </modal-dialog>
 
   </div>
@@ -50,6 +49,7 @@ export default {
   data () {
 
     return {
+
       selector: [ 'article' ],
       svg: false,
       debug: false,
@@ -82,17 +82,12 @@ export default {
         height: 0
       },
 
-      mobile: null,
       currentToolbar: '',
       showDialog: false
     }
   },
 
   computed: {
-
-    Me() {
-      return this;
-    },
 
     currentAnnotation() {
       var annotation = this.annotations[this.lastFocus];
@@ -130,28 +125,6 @@ export default {
       return this.range;
     },
 
-    isMobile() {
-      if (this.mobile != null) {
-        return this.mobile;
-      }
-
-      try {
-        var navigator = window.navigator;
-        this.mobile = ( navigator.userAgent.match(/Android/i)
-          || navigator.userAgent.match(/webOS/i)
-          || navigator.userAgent.match(/iPhone/i)
-          || navigator.userAgent.match(/iPad/i)
-          || navigator.userAgent.match(/iPod/i)
-          || navigator.userAgent.match(/BlackBerry/i)
-          || navigator.userAgent.match(/Windows Phone/i)
-        );
-      } catch(e) {
-        this.log(e);
-      }
-
-      return this.mobile;
-    },
-
     showToolbar() {
       if (!this.selectionBounds.ready) {
         return '';
@@ -166,6 +139,10 @@ export default {
       }
       return '';
     }
+  },
+
+  created() {
+    this.$store.state = this;
   },
 
   mounted () {
@@ -219,6 +196,7 @@ export default {
       EventSpy.start(this.root,
         /* selection callback */
         (sel, range) => {
+          this.selectionBounds.ready = false;
           this.onSelectionChanged(sel, range);
         },
         /* resize callback */
@@ -228,14 +206,13 @@ export default {
         /* mouse callback */
         (pos) => {
           // this.log(pos);
+          this.selectionBounds.ready = false;
           this.onMouseUp(pos);
         }
       );
 
       window.Annot8 = this;
-      setTimeout(() => {
-        this.draw();
-      }, 500);
+      this.$nextTick(this.draw);
 
       this.onRead();
     },
@@ -244,7 +221,7 @@ export default {
       if (range == null)
         return;
 
-      if (this.isMobile) {
+      if (this.$config.mobile) {
         this.selectionBounds.ready = true;
         return;
       }
@@ -346,7 +323,7 @@ export default {
             var rect = this.calculateBoundsFromRects(rects);
             this.selectionBounds = rect;
             this.selectionBounds.ready = true;
-          }, 250);
+          }, 50);
         }
       });
     }, 50),

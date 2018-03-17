@@ -48,9 +48,13 @@ function onSelectionChange(evt) {
       // this.log(err);
   }
 
+  var hadSelection = (selection != null);
   if (!hasSelection) {
       selection = null;
       selectedRange = null;
+      if (!hadSelection) {
+        return;
+      }
   }
 
   selectionChangedCallback(selection, selectedRange);

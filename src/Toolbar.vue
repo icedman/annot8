@@ -1,7 +1,7 @@
 <template>
 <div class="annot8-toolbar-container annot8-disableSelection" style="z-index:999":style="getContainerStylePosition">
   <div class="annot8-toolbar" :style="getStylePosition">
-  <div class="annot8-toolbar-inner">
+  <div class="annot8-toolbar-inner" v-show="!showDialog">
 
     <div class="annot8-toolbar-button"
       :class="'annot8-'+btn.action"
@@ -11,26 +11,41 @@
     </div>
 
   </div>
+
+  <div style="opacity: 0; transition: opacity 500ms" :style="getDialogStyle">
+  <modal-dialog :show="showDialog"></modal-dialog>
+  </div>
   </div>
 </div>
 </template>
 
 <script>
 import EventSpy from './eventSpy.js';
+import Dialog from './Dialog.vue';
 import { _ } from './libs.js';
+
 
 export default {
   data() { return {
     forceMobile: false, // for testing only!
     toolbarRect: { width:0, height:0, spyInterval: 0 },
     buttons: [],
-    currentToolbar: ''
+    currentToolbar: '',
+    editComment: false
   }},
 
   props: {
     a8: Object
   },
   computed: {
+    showDialog() {
+      if (this.a8.showToolbar == '') {
+        this.editComment = false;
+        this.computeToolbarSize();
+      }
+      return this.editComment;
+    },
+
     toolbarButtons() {
       return this.buttons.filter(b=>b.tool === this.a8.showToolbar);
     },
@@ -40,6 +55,13 @@ export default {
         return [ { position: 'fixed', bottom: '0px'} ];
       }
       return [ { position: 'absolute', top: '0px', left: '0px' } ];
+    },
+
+    getDialogStyle() {
+      if (this.toolbarRect.spyInterval || !this.editComment) {
+        return [ { opacity: 0 }];
+      }
+      return [ { opacity: 1} ];
     },
 
     getStylePosition() {
@@ -140,8 +162,8 @@ export default {
           break;
         }
         case 'comment': {
-          this.a8.showDialog = true; 
-          this.a8.currentToolbar = '';
+          this.editComment = true;
+          this.computeToolbarSize();
           break;
         }
       }
@@ -160,8 +182,12 @@ export default {
           clearInterval(this.toolbarRect.spyInterval);
           this.toolbarRect.spyInterval = 0;
         }
-      }, 1);
-    }, 50)
+      }, 10);
+    }, 25)
+  },
+
+  components: {
+    'modal-dialog': Dialog
   }
 }
 </script>
