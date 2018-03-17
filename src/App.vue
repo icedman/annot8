@@ -1,8 +1,9 @@
 <template>
   <div class="annot8-app" :class="[debug?'annot8-debug':'']">
-
     <debugger v-if="debug" :a8="Me">
     </debugger>
+
+    <icons/>
 
     <toolbar :a8="Me">
     </toolbar>
@@ -28,8 +29,6 @@
 
     <modal-dialog :show="showDialog" @close="showModal = false" :a8="Me">
     </modal-dialog>
-
-    <icons/>
 
   </div>
 </template>

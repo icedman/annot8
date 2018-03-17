@@ -8,6 +8,8 @@ Vue.prototype.$config = {
   debug: true,
   svg: true
 };
+Vue.prototype.$state = {
+};
 
 if (typeof(window.annot8Config) == 'object') {
   Vue.prototype.$config = Object.assign(Vue.prototype.$config, window.annot8Config);

@@ -9,7 +9,7 @@
 </label>
 <label class="form-label">
     Body
-    <textarea v-model="this.a8.currentAnnotation.quote" rows="5" 
+    <textarea v-model="body" rows="5" 
       style="min-width:240px;max-width:240px" class="form-control">
     </textarea>
 </label>
