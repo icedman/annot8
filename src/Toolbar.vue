@@ -12,9 +12,10 @@
 
   </div>
 
-  <div style="opacity: 0; transition: opacity 500ms" :style="getDialogStyle">
-  <modal-dialog :show="showDialog"></modal-dialog>
-  </div>
+    <div style="opacity: 0; transition: opacity 500ms" :style="getDialogStyle">
+    <modal-dialog :show="showDialog"></modal-dialog>
+    </div>
+
   </div>
 </div>
 </template>
@@ -26,17 +27,16 @@ import { _ } from './libs.js';
 
 
 export default {
-  data() { return {
-    forceMobile: false, // for testing only!
-    toolbarRect: { width:0, height:0, spyInterval: 0 },
-    buttons: [],
-    currentToolbar: '',
-    editComment: false
+  data() { 
+    var state = this.$store.state;
+    return {
+      a8: state,
+      toolbarRect: { width:0, height:0, spyInterval: 0 },
+      buttons: [],
+      currentToolbar: '',
+      editComment: false
   }},
 
-  props: {
-    a8: Object
-  },
   computed: {
     showDialog() {
       if (this.a8.showToolbar == '') {
@@ -47,11 +47,11 @@ export default {
     },
 
     toolbarButtons() {
-      return this.buttons.filter(b=>b.tool === this.a8.showToolbar);
+      return this.buttons.filter(b=>b.tool === this.a8.showToolbar).slice(0,6);
     },
 
     getContainerStylePosition() {
-      if (this.a8.isMobile || this.forceMobile) {
+      if (this.$config.mobile) {
         return [ { position: 'fixed', bottom: '0px'} ];
       }
       return [ { position: 'absolute', top: '0px', left: '0px' } ];
@@ -65,7 +65,7 @@ export default {
     },
 
     getStylePosition() {
-      if (this.a8.isMobile || this.forceMobile) {
+      if (this.$config.mobile) {
         return [ { bottom: '0px' } ];
       }
       var show = this.a8.showToolbar != '';
@@ -77,15 +77,13 @@ export default {
 
       // force within screen
       var tw = this.toolbarRect.width * 1.2;
-      if (left + tw + 40 > window.screen.availWidth) {
-        left = window.screen.availWidth - tw - 40;
+      if (left + tw + 120 >= window.screen.availWidth) {
+        left = window.screen.availWidth - tw - 120;
       } else if (left < 40) {
         left = 40;
       }
       if (top < 0) {
         top = bounds.y + bounds.height + 10;
-        this.a8.log(bounds);
-        this.a8.log(top);
       }
 
       return [
@@ -137,11 +135,6 @@ export default {
     },
 
     clickButton(event,btn) {
-      var params = {
-        id:this.a8.lastFocus,
-        tag:btn.tag || this.a8.currentTag
-      };
-
       if (typeof(btn.action) === 'function') {
         btn.action(this.a8.currentAnnotation);
         this.a8.clearSelection();
@@ -150,15 +143,25 @@ export default {
 
       switch(btn.action) {
         case 'annotate': {
-          if (this.a8.showToolbar =='edit') {
-            this.a8.erase(this.a8.lastFocus);
-            return;
-          }
+          var params = {
+            id:this.a8.lastFocus,
+            tag:btn.tag || this.a8.currentTag
+          };
           this.a8.annotate(params);
           break;
         }
+        case 'erase': {
+          this.a8.erase(this.a8.lastFocus);
+          break;
+        }
         case 'tags': {
-          this.a8.currentToolbar = 'tags';
+          if (this.a8.currentToolbar == 'tags') {
+            this.a8.currentToolbar = '';
+            this.a8.focus = null;
+          } else {
+            this.a8.currentToolbar = 'tags';
+          }
+          // this.computeToolbarSize();
           break;
         }
         case 'comment': {

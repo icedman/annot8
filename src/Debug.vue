@@ -9,12 +9,12 @@
   <a class="annot8-button" v-if="a8.focus!=null" @click="a8.erase(a8.lastFocus)">Remove</a>
   <a class="annot8-button" v-if="a8.annotations.length" @click="a8.draw()">Redraw</a>
   <!-- <a class="annot8-button" @click="a8.toggleRenderer()">Toggle Renderer</a> -->
-  <a class="annot8-button" @click="a8.errors = []">Clear Log</a>
+  <a class="annot8-button" @click="$store.clearLogs()">Clear Log</a>
 
   <br>
   <hr>
 
-  Mobile: {{a8.isMobile}}<br>
+  Mobile: {{$config.mobile}}<br>
   Dialog: {{a8.showDialog}}<br>
   Toolbar:{{a8.showToolbar}}<br>
   Focus: {{a8.focus}}<br>
@@ -41,8 +41,12 @@
 
 <script>
 export default {
-    props: {
-        a8: Object
+    data() {
+        var state = this.$store.state;
+        return {
+          a8: state
+        }
     }
 }
 </script>
+
