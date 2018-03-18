@@ -9,6 +9,7 @@ Author URI: http://lawyerly.ph
 
 function annot8_init() {
     wp_register_script( 'annot8-main', plugins_url( '/annot8/dist/build.js', __FILE__ ));
+    wp_register_script( 'annot8-main', plugins_url( '/annot8/dist/build.js', __FILE__ ));
     // wp_register_style( 'annot8-css', plugins_url( '/annot8.css', __FILE__ ) );
 }
 
@@ -19,11 +20,11 @@ function annot8_enqueue_scripts()
 }
 
 function annot8_print_scripts() {
-    require_once('scripts.html');
+    // require_once('scripts.html');
     // require_once('twitter.html');
 ?>
 <div id="annot8-app"></div>
-
+<script src="<?php echo plugins_url( '/annot8/wp/storage.js', __FILE__ )?>"></script>
 <script>
 var annot8Config = {
   docid: window.location.href,
@@ -52,7 +53,7 @@ var annot8Config = {
     { action:'tags',      title:'Tag',       icon:'#si-awesome-tags',     tool: 'edit' },
     { action:annot8Tweet, title:'Tweet',     icon:'#si-awesome-twitter',  tool: 'edit' },
     { action:annot8FB,    title:'Facebook',  icon:'#si-awesome-facebook', tool: 'edit' },
-    // { action:annot8Comment, title:'Comment', icon:'#si-awesome-comment',  tool: 'edit' }, // not ready
+    { action:annot8Comment, title:'Comment', icon:'#si-awesome-comment',  tool: 'edit' }, // not ready
     { action:'erase',     title:'Erase',     icon:'#si-bootstrap-erase',  tool: 'edit' }
   ]
 };

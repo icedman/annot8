@@ -33,7 +33,6 @@ export default {
       a8: state,
       toolbarRect: { width:0, height:0, spyInterval: 0 },
       buttons: [],
-      currentToolbar: '',
       editComment: false
   }},
 
@@ -76,13 +75,15 @@ export default {
       var top = bounds.y - this.toolbarRect.height;
 
       // force within screen
-      var tw = this.toolbarRect.width * 1.2;
-      if (left + tw + 120 >= window.screen.availWidth) {
-        left = window.screen.availWidth - tw - 120;
+      var sw = window.screen.availWidth * 0.85;
+      var sy = window.scrollY;
+      var tw = this.toolbarRect.width * 1.25;
+      if (left + tw >= sw) {
+        left = sw - tw;
       } else if (left < 40) {
         left = 40;
       }
-      if (top < 0) {
+      if (top - sy < 0) {
         top = bounds.y + bounds.height + 10;
       }
 
@@ -151,6 +152,8 @@ export default {
           break;
         }
         case 'erase': {
+          this.a8.currentToolbar = '';
+          this.a8.focus = null;
           this.a8.erase(this.a8.lastFocus);
           break;
         }
@@ -161,7 +164,6 @@ export default {
           } else {
             this.a8.currentToolbar = 'tags';
           }
-          // this.computeToolbarSize();
           break;
         }
         case 'comment': {

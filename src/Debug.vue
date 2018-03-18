@@ -7,22 +7,17 @@
   <a class="annot8-button" v-if="a8.selection" @click="a8.annotate()">Annotate</a>
   <a class="annot8-button" v-if="a8.selection" @click="a8.annotate({tag:'tag2'})">Green Tag</a>
   <a class="annot8-button" v-if="a8.focus!=null" @click="a8.erase(a8.lastFocus)">Remove</a>
-  <a class="annot8-button" v-if="a8.annotations.length" @click="a8.draw()">Redraw</a>
-  <!-- <a class="annot8-button" @click="a8.toggleRenderer()">Toggle Renderer</a> -->
-  <a class="annot8-button" @click="$store.clearLogs()">Clear Log</a>
 
   <br>
   <hr>
 
   Mobile: {{$config.mobile}}<br>
-  Dialog: {{a8.showDialog}}<br>
   Toolbar:{{a8.showToolbar}}<br>
   Focus: {{a8.focus}}<br>
   Quote: {{a8.selectionQuote}}<br>
   Range: {{a8.selectionRange}}<br>
   Rect:  {{a8.selectionBounds}}<br>
   Tag:   {{a8.tag}}<br>
-  Elm: {{a8.root.offsetLeft}}, {{a8.root.offsetTop}}<br>
   Log:
 
   <ul>

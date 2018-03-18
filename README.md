@@ -16,3 +16,5 @@ npm run build
 ```
 
 This annotator does not mutate the source document but draws the highlights as separate elements.
+
+[Live Demo]: https://appsmart-contracts.firebaseapp.com

@@ -1,5 +1,5 @@
 <template>
-<div class="annot8-modal-container"v-show="show">
+<div class="annot8-modal-container" v-show="show">
 <div class="annot8-modal-inner">
 
   <div class="annot8-modal-body">
@@ -14,6 +14,8 @@
 </template>
 
 <script>
+import { _ } from './libs.js';
+
 export default {
   props: {
     show: Boolean
@@ -28,8 +30,15 @@ export default {
 
   computed: {
     comment: {
-      get() { return this.a8.annotations[this.a8.focus].comment; },
-      set(value) { this.a8.annotations[this.a8.focus].comment=value; }
+      get() { 
+        if (this.a8.focus == null) {
+          return '';
+        }
+        return this.a8.annotations[this.a8.focus].comment;
+      },
+      set: _.debounce(function(value) {
+        this.a8.comment({comment:value});
+      }, 500)
     }
   },
 

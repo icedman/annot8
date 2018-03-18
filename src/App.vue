@@ -26,9 +26,6 @@
       <a target="_blank" id="annot8_facebook_link" href="" @click="openShareLink"></a>
     </div>
 
-    <modal-dialog :show="showDialog" @close="showModal = false">
-    </modal-dialog>
-
   </div>
 </template>
 
@@ -82,8 +79,7 @@ export default {
         height: 0
       },
 
-      currentToolbar: '',
-      showDialog: false
+      currentToolbar: ''
     }
   },
 
@@ -130,11 +126,9 @@ export default {
         return '';
       }
       if (this.selection && this.focus === null) {
-        this.showDialog = false;
         return this.currentToolbar || 'create';
       }
       if (this.selection === null && this.focus !== null) {
-        this.showDialog = false;
         return this.currentToolbar || 'edit';
       }
       return '';
@@ -146,6 +140,7 @@ export default {
   },
 
   mounted () {
+    this.$store.state = this;
     this.init();
   },
 
@@ -175,21 +170,6 @@ export default {
       try {
         this.root.appendChild(this.$el);
       } catch(e) {
-      }
-
-      // get margin hint
-      for(var sheet of document.styleSheets) {
-        try {
-          for(var rule of sheet.rules) {
-            if (rule.selectorText.indexOf('html') != -1) {
-              if (rule.cssText.indexOf('!important') != -1) {
-                console.log(rule.cssText);
-              }
-            }
-          }
-        } catch(e) {
-          // skip errors
-        }
       }
 
       // run!
@@ -270,7 +250,7 @@ export default {
     },
 
     onSelectionChanged: _.debounce(function(sel, range) {
-      // this.log('onSelectionChanged');
+      this.log('onSelectionChanged');
       this.selection = sel;
       this.range = range ? fromRange(range, this.root) : null;
       this.selectionBounds.ready = false;
@@ -281,7 +261,7 @@ export default {
     }, 50),
 
     onDocumentResized: _.debounce(function() {
-      // this.log('onDocumentResized');
+      this.log('onDocumentResized');
       this.draw();
     }, 150),
 
@@ -357,10 +337,15 @@ export default {
       }, 250);
     },
 
-    _updateAnnotation(id) {
-      var annotation = this.annotations[id];
+    _updateAnnotation(params) {
+      var annotation = this.annotations[params.id];
       if (annotation) {
-        annotation.tag = this.tag;
+        if (params.tag != undefined) {
+          annotation.tag = params.tag;
+        }
+        if (params.comment != undefined) {
+         annotation.comment = params.comment;
+        }
       }
       this.onUpdate(annotation);
     },
@@ -372,12 +357,17 @@ export default {
       if (this.selection) {
         this._createAnnotation();
       } else if (params.id != undefined) {
-        this._updateAnnotation(params.id);
+        this._updateAnnotation(params);
       }
 
       this.draw();
       this.clearSelection();
       this.currentToolbar = '';
+    },
+
+    comment(params) {
+      params.id = this.focus;
+      this._updateAnnotation(params);
     },
 
     erase(idx) {
