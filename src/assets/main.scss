@@ -1,11 +1,3 @@
-
-$hl-color1: rgba(255,255,0,0.85);   /*yellow*/
-$hl-color2: rgba(180,255,180,0.85); /*green*/
-$hl-color3: rgba(160,160,255,0.85); /*blue*/
-$hl-color4: rgba(180,120,255,0.85); /*purple*/
-$hl-color5: rgba(255,120,120,0.85); /*red*/
-$hl-color6: rgba(255,120,120,0.85); /*red*/
-
 $hl-color1: rgb(255,255,0);   /*yellow*/
 $hl-color2: rgb(100,255,100); /*green*/
 $hl-color3: rgb( 60,120,255); /*blue*/
@@ -71,12 +63,19 @@ $hl-color6: rgb(255,100,100); /*red*/
 .annot8-modal-container {
   --border: 2px solid blue;
 }
-
 .annot8-modal-container * {
   font-family: tahoma,arial;
-  font-size: 12pt;  
+  font-size: 10pt;  
+  color: #505050;
 }
-
+.annot8-modal-button {
+  background: transparent;
+  border: 1px solid #c0c0c0;
+  padding: 10px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  border-radius: 5px; 
+}
 .annot8-modal-inner {
   --border: 2px solid red;
 }
@@ -174,14 +173,14 @@ $hl-color6: rgb(255,100,100); /*red*/
 }
 
 .annot8-hl {
-  fill-opacity: 0.5;
+  fill-opacity: 0.35;
   fill:$hl-color1;
-  opacity: 0.5;
+  opacity: 0.35;
   background-color:$hl-color1;
 }
 .annot8-hl.annot8-active {
-  fill-opacity: 0.9;
-  opacity: 0.9;
+  fill-opacity: 0.8;
+  opacity: 0.8;
 }
 
 .annot8-hl-tag1 { background-color: $hl-color1; }

@@ -188,6 +188,16 @@ export default {
           // this.log(pos);
           this.selectionBounds.ready = false;
           this.onMouseUp(pos);
+        },
+        /* key callback */
+        (keycode) => {
+          if (keycode == 27) {
+            // cancel everything (immediately)
+            this.currentToolbar = '';
+            this.focus = null;
+            this.lastFocus = null;
+            this.clearSelection();
+          }
         }
       );
 

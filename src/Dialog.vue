@@ -7,6 +7,11 @@
     style="min-width:288px;max-width:288px" class="form-control"
     v-model="comment">
   </textarea>
+  <div v-show="dirty">
+  <button @click="save" class="annot8-modal-button" style="float:right;">
+    Save
+  </button>
+  </div>
   </div>
 
 </div>
@@ -24,7 +29,9 @@ export default {
   data: function () {
     var state = this.$store.state;
     return {
-      a8: state
+      a8: state,
+      newComment: '',
+      dirty: false
     };
   },
 
@@ -36,13 +43,20 @@ export default {
         }
         return this.a8.annotations[this.a8.focus].comment;
       },
-      set: _.debounce(function(value) {
-        this.a8.comment({comment:value});
-      }, 500)
+      set(value) {
+        this.newComment = value;
+        this.dirty = true;
+      },
     }
   },
 
   methods: {
+    save() {
+      this.a8.comment({comment:this.newComment});
+      this.a8.currentToolbar = '';
+      this.a8.focus = null;
+      this.dirty = false;
+    },
   },
 }
 </script>

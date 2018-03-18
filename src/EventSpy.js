@@ -6,6 +6,7 @@ var selectedRange = null;
 var selectionChangedCallback = null;
 var documentResizeCallback = null;
 var mouseUpCallback = null;
+var keyCallback = null;
 var isRunning = false;
 
 function isElementWithin(elm) {
@@ -95,7 +96,13 @@ function onTouchStart(evt) {
   }
 }
 
-function start(element, callback1, callback2, callback3) {
+function onKeyDown(evt) {
+  if (evt.keyCode == 27) {
+    keyCallback(evt.keyCode);
+  }
+}
+
+function start(element, callback1, callback2, callback3, callback4) {
   if (isRunning) {
     return;
   }
@@ -104,6 +111,7 @@ function start(element, callback1, callback2, callback3) {
   selectionChangedCallback = callback1;
   documentResizeCallback = callback2;
   mouseUpCallback = callback3;
+  keyCallback = callback4;
 
   isRunning = true;
   document.addEventListener('selectionchange', onSelectionChange);
@@ -112,6 +120,7 @@ function start(element, callback1, callback2, callback3) {
   // document.body.addEventListener('touchstart', onTouchStart);
   // document.body.addEventListener('touchmove', onTouchStart);
   document.body.addEventListener('touchend', onTouchStart);
+  document.addEventListener("keydown", onKeyDown);
 }
 
 function pause() {
@@ -134,6 +143,7 @@ function stop() {
   // document.body.removeEventListener('touchstart', onTouchStart);
   // document.body.removeEventListener('touchmove', onTouchStart);
   document.body.removeEventListener('touchend', onTouchStart);
+  document.removeEventListener("keydown", onKeyDown);
 }
 
 export default {

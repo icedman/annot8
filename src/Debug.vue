@@ -24,12 +24,12 @@
     <li v-for="(e,index) in a8.errors">{{e}}</li>
   </ul>
   <hr>
-  <table class="table">
-    <tr v-for="(annotation, index) in a8.annotations">
-      <td>{{ annotation.quote }}</td>
-      <td>{{ annotation.range }}</td>
-    </tr>
-  </table>
+  <ul>
+    <li v-for="(annotation, index) in a8.annotations">
+      <span>{{ annotation.quote }}</span>
+      <p>{{ annotation.range }}</p>
+    </li>
+  </ul>
 </div>
 
 </template>

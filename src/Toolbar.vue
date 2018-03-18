@@ -160,7 +160,7 @@ export default {
         case 'tags': {
           if (this.a8.currentToolbar == 'tags') {
             this.a8.currentToolbar = '';
-            this.a8.focus = null;
+            // this.a8.focus = null;
           } else {
             this.a8.currentToolbar = 'tags';
           }
