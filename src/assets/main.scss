@@ -68,25 +68,39 @@ $hl-color6: rgb(255,100,100); /*red*/
   font-size: 10pt;  
   color: #505050;
 }
-.annot8-modal-button {
+.annot8-modal-button,
+.annot8-modal-button:hover {
   background: transparent;
-  border: 1px solid #c0c0c0;
-  padding: 10px;
-  padding-top: 2px;
-  padding-bottom: 2px;
-  border-radius: 5px; 
+  border: 0px;
+  padding: 6px;
+  padding-left: 10px;
+  --border: 2px solid red;
 }
+.annot8-modal-button *{
+  fill: #a0a0a0;
+}
+.annot8-modal-text {
+  color: #505050;  
+}
+
 .annot8-modal-inner {
   --border: 2px solid red;
 }
-
+.annot8-modal-container span.author {
+  color: #808080;
+  font-size: 8pt; 
+}
+.annot8-modal-container span.created {
+  color: #a0a0a0;
+  font-size:8pt; 
+}
 .annot8-toolbar-button {
   display: inline-block;
   overflow: hidden;
   background: transparent;
   color: #fff;
   width: 40px;
-  height: 28px;
+  height: 38px;
   padding-top: 8px;
   padding-bottom: 4px;
   border: 0px;
@@ -97,7 +111,6 @@ $hl-color6: rgb(255,100,100); /*red*/
   fill: #fff;
   display: inline-block;
 }
-
 .annot8-toolbar-button[data-tag='yellow'] .annot8-toolbar-icon {
   color: yellow;
   fill: yellow;
@@ -137,13 +150,14 @@ $hl-color6: rgb(255,100,100); /*red*/
 .annot8-modal-container {
   margin:0px;
   margin-bottom: 8px;
-  text-align: center;
+  text-align: left;
 }
 
 .annot8-modal-inner {
   display:inline-block;
-  width: 300px;
+  max-width: 300px;
   padding: 8px;
+  padding-bottom: 2px;
   margin: 0px;
   background-color: #fff;
   border-radius: 2px;

@@ -1,1 +1,1 @@
-/Users/iceman/Developer/Projects/annot8/dist/build.js
+../../../dist/build.js
