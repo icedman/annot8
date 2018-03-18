@@ -53,7 +53,7 @@ var annot8Config = {
     { action:'tags',      title:'Tag',       icon:'#si-awesome-tags',     tool: 'edit' },
     { action:annot8Tweet, title:'Tweet',     icon:'#si-awesome-twitter',  tool: 'edit' },
     { action:annot8FB,    title:'Facebook',  icon:'#si-awesome-facebook', tool: 'edit' },
-    { action:annot8Comment, title:'Comment', icon:'#si-awesome-comment',  tool: 'edit' }, // not ready
+    { action:'comment', title:'Comment', icon:'#si-awesome-comment',  tool: 'edit' }, // not ready
     { action:'erase',     title:'Erase',     icon:'#si-bootstrap-erase',  tool: 'edit' }
   ]
 };

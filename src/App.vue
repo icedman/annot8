@@ -266,7 +266,6 @@ export default {
     }, 150),
 
     onMouseUp: _.debounce(function(pos) {
-      // this.log('onMouseUp');
       this.focus = null;
       var pad = 2;
       // make relative

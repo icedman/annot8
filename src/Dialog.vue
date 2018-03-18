@@ -4,7 +4,7 @@
 
   <div class="annot8-modal-body">
   <textarea rows="4"
-    style="min-width:298px;max-width:298px" class="form-control"
+    style="min-width:288px;max-width:288px" class="form-control"
     v-model="comment">
   </textarea>
   </div>
