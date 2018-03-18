@@ -68,18 +68,22 @@ $hl-color6: rgb(255,100,100); /*red*/
   font-size: 10pt;  
   color: #505050;
 }
-.annot8-modal-button {
+.annot8-modal-button,
+.annot8-modal-button:hover {
   background: transparent;
-  border: 1px solid #c0c0c0;
-  padding: 10px;
-  padding-top: 2px;
-  padding-bottom: 2px;
-  border-radius: 5px; 
+  border: 0px;
+  padding: 6px;
+}
+.annot8-modal-button *{
+  fill: #a0a0a0;
 }
 .annot8-modal-inner {
   --border: 2px solid red;
 }
-
+.annot8-modal-container label.author {
+  color: #a0a0a0;
+  font-size:8pt; 
+}
 .annot8-toolbar-button {
   display: inline-block;
   overflow: hidden;

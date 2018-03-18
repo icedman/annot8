@@ -140,24 +140,12 @@ class Annotator_Plugin extends Annotator_LifeCycle {
 
         // Add options administration page
         // http://plugin.michael-simpson.com/?page_id=47
-        add_action('admin_menu', array(&$this, 'addSettingsSubMenuPage'));
+       add_action('admin_menu', array(&$this, 'addSettingsSubMenuPage'));
 
-        // Example adding a script & style just for the options administration page
-        // http://plugin.michael-simpson.com/?page_id=47
-        //        if (strpos($_SERVER['REQUEST_URI'], $this->getSettingsSlug()) !== false) {
-        //            wp_enqueue_script('my-script', plugins_url('/js/my-script.js', __FILE__));
-        //            wp_enqueue_style('my-style', plugins_url('/css/my-style.css', __FILE__));
-        //        }
-
-
-        // Add Actions & Filters
-        // http://plugin.michael-simpson.com/?page_id=37
-
-
-        // Adding scripts & styles to all pages
-        // Examples:
-        //        wp_enqueue_script('jquery');
-        //        wp_enqueue_style('my-style', plugins_url('/css/my-style.css', __FILE__));
+        register_meta( 'comment',
+            $this->getOptionNamePrefix().'annotation',
+            [ 'show_in_rest' => true ]
+        );
 
        wp_register_script( 'annot8-main', plugins_url( '/js/annot8.js', __FILE__ ));
        // wp_enqueue_style( 'wp-color-picker' );
@@ -173,10 +161,152 @@ class Annotator_Plugin extends Annotator_LifeCycle {
        $this->enableAnnotator = false;
        add_shortcode('annotate', array($this, 'enableAnnotatorOnCode'));
 
-
         // Register AJAX hooks
         // http://plugin.michael-simpson.com/?page_id=41
 
+        add_action('rest_api_init', function() {
+
+            register_rest_route( 'annotator/v1', '/annotations',
+            array(
+                array(
+                    'methods' => 'GET',
+                    'callback' => array( $this, 'getAnnotations')
+                ),
+                array(
+                    'methods' => 'POST',
+                    'callback' => array( $this, 'createAnnotation')
+                ),
+                array(
+                    'methods' => 'PUT',
+                    'callback' => array( $this, 'updateAnnotation')
+                ),
+                array(
+                    'methods' => 'DELETE',
+                    'callback' => array( $this, 'deleteAnnotation')
+                )
+            ));
+
+        });
+
+    }
+
+    public function getAnnotations( WP_REST_Request $request ) {
+        $user = wp_get_current_user();
+        $params = $request->get_params();
+        if (empty($params['post']))
+            return [];
+
+        $controller = new WP_REST_Comments_Controller;
+        // $response = $controller->get_item_permissions_check($request);
+        // if ($response->errors)
+        //     return $response;
+
+        $comments = get_comments([
+            'post_id'=>$request['post'],
+            'type'=>'annotation',
+            'meta_key'=>$this->getOptionNamePrefix().'annotation'
+        ]);
+
+        $filtered = [];
+        foreach($comments as $comment) {
+            if ($comment->comment_approved != "1") {
+                if ((string)($user->ID)!=$comment->user_id) {
+                    continue;
+                }
+            }
+            $comment->meta = get_comment_meta($comment->comment_ID);
+            $filtered[] = $comment;
+        }
+
+        return $filtered;
+        // return $controller->get_item($request);
+    }
+
+    public function createAnnotation( WP_REST_Request $request ) {
+        $user = wp_get_current_user();
+        $params = $request->get_params();
+        if (empty($params['post']) || empty($user->ID))
+            return [ 'error', 'params'=>$params, 'user'=>$user];
+
+        // global $wpdb;
+        // $wpdb->query('START TRANSACTION');
+
+        $controller = new WP_REST_Comments_Controller;
+        $response = $controller->create_item_permissions_check($request);
+        if ($response->errors)
+            return $response;
+
+        $response = $controller->create_item($request);
+
+        if ($response->errors)
+            return $response;
+        
+        $comment_id = $response->data['id'];
+        $comment_args = [
+            'comment_ID' => $comment_id,
+            'comment_type' => 'annotation',
+        ];
+        wp_update_comment($comment_args);
+        $comment = get_comment($comment_id);
+
+        add_comment_meta( $comment_id, $this->getOptionNamePrefix().'annotation', $params['annotation']);
+
+        // $wpdb->query('ROLLBACK');
+        return $comment;
+    }
+
+    public function updateAnnotation( WP_REST_Request $request ) {
+        $user = wp_get_current_user();
+        $params = $request->get_params();
+        if (empty($params['id']) || empty($user->ID))
+            return [ 'error', 'params'=>$params, 'user'=>$user];
+
+        // global $wpdb;
+        // $wpdb->query('START TRANSACTION');
+
+        $controller = new WP_REST_Comments_Controller;
+        $response = $controller->update_item_permissions_check($request);
+        if ($response->errors)
+            return $response;
+
+        $comment_id = $params['id'];
+        $comment_args = [
+            'comment_ID' => $comment_id,
+            'comment_content' => $params['content'],
+        ];
+        $response = wp_update_comment($comment_args);
+
+        // $comment1 = get_comment_meta( $comment_id, $this->getOptionNamePrefix().'annotation');
+
+        update_comment_meta( $comment_id, $this->getOptionNamePrefix().'annotation', $params['annotation']);
+        // $comment2 = get_comment_meta( $comment_id, $this->getOptionNamePrefix().'annotation');
+
+        // $wpdb->query('ROLLBACK');
+        
+        return [];
+    }
+
+    public function deleteAnnotation( WP_REST_Request $request ) {
+        $user = wp_get_current_user();
+        $params = $request->get_params();
+        if (empty($params['id']) || empty($user->ID))
+            return [ 'error', 'params'=>$params, 'user'=>$user];
+
+        // global $wpdb;
+        // $wpdb->query('START TRANSACTION');
+
+        $controller = new WP_REST_Comments_Controller;
+        $response = $controller->delete_item_permissions_check($request);
+        if ($response->errors)
+            return $response;
+
+        $comment_id = $params['id'];
+        $response = $controller->delete_item($request);
+        
+        // $wpdb->query('ROLLBACK');
+
+        return $response;
+        
     }
 
     public function enableAnnotatorOnCode() {
@@ -190,12 +320,25 @@ class Annotator_Plugin extends Annotator_LifeCycle {
         if (!$this->enableAnnotator)
             return;
 
+        // $postid = $wp_query->query->ID;
+        $docid = 'window.location.href';
+        $postid = $wp_query->queried_object_id;
+        if (!empty($postid)) {
+            $docid = "window.location.hostname + '-doc-{$postid}'";
+        }
+
 ?>
 <div id="annot8-app"></div>
+<?php if ($this->getOption('Storage')=='Local Storage') :?>
 <script src="<?php echo plugins_url( '/js/localStorage.js', __FILE__ )?>"></script>
+<?php else: ?>
+<script src="<?php echo plugins_url( '/js/wpStorage.js', __FILE__ )?>"></script>
+<?php endif?>
 <script>
 var annot8Config = {
-  docid: window.location.href,
+  docid: <?php echo $docid; ?>,
+  postid: <?php echo $postid; ?>,
+  nonce: '<?php echo wp_create_nonce( 'wp_rest' ); ?>',
   selector: ['article .entry-content', '.entry-content'],
   debug: <?php echo (!empty($this->getOption('DebugMode')) ? 'true':'false') ?>,
   svg: <?php echo (!empty($this->getOption('SvgRenderer')) ? 'true':'false') ?>,
