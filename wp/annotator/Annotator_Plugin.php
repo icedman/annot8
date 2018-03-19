@@ -303,7 +303,7 @@ class Annotator_Plugin extends Annotator_LifeCycle {
 
         $comment_id = $params['id'];
         $response = $controller->delete_item($request);
-
+        
         // $wpdb->query('ROLLBACK');
 
         return $response;
@@ -326,6 +326,8 @@ class Annotator_Plugin extends Annotator_LifeCycle {
         $postid = $wp_query->queried_object_id;
         if (!empty($postid)) {
             $docid = "window.location.hostname + '-doc-{$postid}'";
+        } else {
+            $postid = 0;
         }
 
         $user = wp_get_current_user();

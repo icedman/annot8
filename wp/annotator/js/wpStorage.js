@@ -122,6 +122,9 @@ function annot8Update(http, annotations, annotation) {
 }
 function annot8Delete(http, annotations, annotation) {
   var annot = Object.assign({},annotation);
+  annot.range = JSON.parse(annot.range);
+  annot.rects = [];
+  var comment = annot.comment || annot.quote;
   var url = window.location.origin + '/wp-json/annotator/v1/annotations';
 
   http({

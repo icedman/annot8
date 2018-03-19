@@ -47,6 +47,7 @@ export default {
   },
 
   computed: {
+<<<<<<< HEAD
     canEdit() {
       if (this.$config.authorEmail) {
         if (this.a8.focus == null) {
@@ -60,6 +61,8 @@ export default {
       return false;
     },
 
+=======
+>>>>>>> 322d4488cb4b36a0f4c4c3a5365a52d76d7a516d
     author() {
       if (this.a8.focus == null) {
         return '';
