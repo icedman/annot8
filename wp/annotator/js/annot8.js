@@ -1,1 +1,1 @@
-../../../dist/build.js
+/Users/iceman/Developer/Projects/preact-annotator/dist/build.js

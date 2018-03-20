@@ -25,6 +25,9 @@ class Annotator_Plugin extends Annotator_LifeCycle {
         'default'=>'Local Storage',
         'options'=> ['Local Storage','Server Database'] ]
 ),
+'Selector' => array(
+    'Selector',
+    [ 'type'=>'textbox', 'description'=>'Enter selector for the post or page HTML Node.', 'default'=>'article .entry-content, .entry-content' ]),
 'TagSelect' => array(
     'Highlight by Tag',
     [ 'type'=>'checkbox', 'description'=>'Enable tag selection with each tag assigned with a highlight color.', 'default'=>'on' ]),
@@ -147,7 +150,7 @@ class Annotator_Plugin extends Annotator_LifeCycle {
             [ 'show_in_rest' => true ]
         );
 
-       wp_register_script( 'annot8-main', plugins_url( '/js/annot8.js', __FILE__ ));
+       wp_register_script( 'annot8-main', plugins_url( '/js/annot8.js?t=' . rand(), __FILE__ ));
        // wp_enqueue_style( 'wp-color-picker' );
 
        add_action( 'admin_enqueue_scripts', array(&$this, 'enqueueColorPickerScripts'));
@@ -336,6 +339,21 @@ class Annotator_Plugin extends Annotator_LifeCycle {
             $authorEmail = $user->user_email;
         }
 
+        $selector = $this->getOption('Selector');
+        if (empty($selector)) {
+            $selector = 'article .entry-content, .entry-content';
+        }
+        $selector = str_replace('\'','',$selector);
+        $ss = explode(',', $selector);
+        $selector = [];
+        foreach($ss as $s) {
+            $selector[] = '\'' . $s . '\'';
+        }
+        $selector[] = '\'article .entry-content\'';
+        $selector[] = '\'.entry-content\'';
+
+        $selector = implode(',', $selector);
+
 ?>
 <div id="annot8-app"></div>
 <?php if ($this->getOption('Storage')=='Local Storage') :?>
@@ -349,7 +367,7 @@ var annot8Config = {
   docid: <?php echo $docid; ?>,
   postid: <?php echo $postid; ?>,
   nonce: '<?php echo wp_create_nonce( 'wp_rest' ); ?>',
-  selector: ['article .entry-content', '.entry-content'],
+  selector: [<?php echo $selector; ?>],
   debug: <?php echo (!empty($this->getOption('DebugMode')) ? 'true':'false') ?>,
   svg: <?php echo (!empty($this->getOption('SvgRenderer')) ? 'true':'false') ?>,
   source: {
