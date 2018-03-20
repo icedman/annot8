@@ -27,7 +27,7 @@ class Annotator_Plugin extends Annotator_LifeCycle {
 ),
 'Selector' => array(
     'Selector',
-    [ 'type'=>'textbox', 'description'=>'Enter selector for the post or page HTML Node.', 'default'=>'article .entry-content, .entry-content' ]),
+    [ 'type'=>'textbox', 'description'=>'Enter selector for the post or page HTML Node.', 'default'=>'article .entry-content, article .content-inner, article' ]),
 'TagSelect' => array(
     'Highlight by Tag',
     [ 'type'=>'checkbox', 'description'=>'Enable tag selection with each tag assigned with a highlight color.', 'default'=>'on' ]),
@@ -143,7 +143,10 @@ class Annotator_Plugin extends Annotator_LifeCycle {
 
         // Add options administration page
         // http://plugin.michael-simpson.com/?page_id=47
-       add_action('admin_menu', array(&$this, 'addSettingsSubMenuPage'));
+        add_action('admin_menu', array(&$this, 'addSettingsSubMenuPage'));
+
+        add_filter('admin_comment_types_dropdown', array(&$this, 'addCommentType'));
+        add_filter('comment_text', array(&$this, 'addCommentTextFilter'), 10, 2);
 
         register_meta( 'comment',
             $this->getOptionNamePrefix().'annotation',
@@ -317,6 +320,24 @@ class Annotator_Plugin extends Annotator_LifeCycle {
         $this->enableAnnotator = true;
     }
 
+    public function addCommentType($arr) {
+        $arr= array_merge($arr, array('annotation'=>'Annotations'));
+        return $arr;
+    }
+
+    public function addCommentTextFilter($comment_text, $comment) {
+        if ($comment->comment_type=='annotation') {
+            $comment->meta = get_comment_meta($comment->comment_ID);
+            $json = json_decode($comment->meta['Annotator_Plugin_annotation'][0]);
+            $quote = trim($json->quote);
+            if ($quote == trim($comment_text)) {
+                return $comment_text;
+            }
+            return "<blockquote class='annot8-blockquote'>{$quote}</blockquote>{$comment_text}";
+        }
+        return $comment_text . serialize($comment);
+    }
+
     public function addAnnot8Script() {
         global $wp_query; 
         if (!empty($this->getOption('GlobalAnnotation')) && count($wp_query->query)>0)
@@ -347,7 +368,7 @@ class Annotator_Plugin extends Annotator_LifeCycle {
         $ss = explode(',', $selector);
         $selector = [];
         foreach($ss as $s) {
-            $selector[] = '\'' . $s . '\'';
+            $selector[] = '\'' . trim($s) . '\'';
         }
         $selector[] = '\'article .entry-content\'';
         $selector[] = '\'.entry-content\'';
@@ -404,6 +425,29 @@ var annot8Config = {
 };
 </script>
 <style>
+blockquote.annot8-blockquote {
+    font-family: Georgia, serif;
+    font-size: 18px;
+    font-style: italic;
+    width: 450px;
+    padding: 0px;
+    padding-left: 40px;
+    margin:0px;
+    padding-top: 12px;
+    line-height: 1.45;
+    position: relative;
+    color: #383838;
+}
+blockquote.annot8-blockquote:before {
+    display: block;
+    content: "\201C";
+    font-size: 40px;
+    position: absolute;
+    left: 10px;
+    top:  0px;
+    color: #7a7a7a;
+}
+
 <?php for($i=1;$i<HIGHLIGHT_COlORS_COUNT;$i++) : $color = $this->getOption('ColorTag' . $i); ?>    
 <?php if (!empty($color)) :?>
 .annot8-toolbar-button[data-tag='tag<?php echo $i;?>']
